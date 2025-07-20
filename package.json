@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "test:bdd": "cucumber-js features/*.feature --config cucumber.config.js",
+    "test:bdd:basic": "cucumber-js features/basic-test.feature --config cucumber.config.js",
+    "test:e2e": "playwright test",
+    "test": "npm run test:bdd:basic"
   },
   "keywords": [
     "react",
@@ -24,6 +28,8 @@
     "react-router-dom": "^6.28.0"
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^12.1.0",
+    "@cucumber/playwright": "^3.1.0",
     "@playwright/test": "^1.54.1",
     "@tailwindcss/vite": "^4.0.5",
     "@types/react": "^18.3.12",
