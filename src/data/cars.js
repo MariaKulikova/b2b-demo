@@ -1,12 +1,4 @@
 // Car inventory data for Cool Cars Amsterdam
-import bmwSedan1 from '../assets/cars/bmw-sedan-1.jpg';
-import bmwSedan2 from '../assets/cars/bmw-sedan-2.jpg';
-import audiA41 from '../assets/cars/audi-a4-1.jpg';
-import audiA42 from '../assets/cars/audi-a4-2.jpg';
-import rav41 from '../assets/cars/rav4-1.jpg';
-import rav42 from '../assets/cars/rav4-2.jpg';
-import accord1 from '../assets/cars/accord-1.jpg';
-import accord2 from '../assets/cars/accord-2.jpg';
 
 export const cars = [
   {
@@ -16,7 +8,7 @@ export const cars = [
     year: 2020,
     price: 32500,
     mileage: 45000,
-    images: [bmwSedan1, bmwSedan2],
+    images: ['https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
     description: 'Luxury sedan with premium features and excellent performance. Well-maintained with full service history.',
     features: ['Automatic transmission', 'Leather seats', 'Navigation system', 'Bluetooth connectivity'],
     fuelType: 'Petrol',
@@ -31,7 +23,7 @@ export const cars = [
     year: 2019,
     price: 28900,
     mileage: 52000,
-    images: [bmwSedan2, bmwSedan1],
+    images: ['https://images.unsplash.com/photo-1580273916550-e323be2ae537?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
     description: 'Executive sedan with advanced safety features and comfortable interior.',
     features: ['Automatic transmission', 'Premium sound system', 'Parking sensors', 'Climate control'],
     fuelType: 'Petrol',
@@ -46,7 +38,7 @@ export const cars = [
     year: 2021,
     price: 38500,
     mileage: 32000,
-    images: [audiA41, audiA42],
+    images: ['https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
     description: 'Modern luxury sedan with cutting-edge technology and superior comfort.',
     features: ['Quattro AWD', 'Virtual cockpit', 'LED headlights', 'Wireless charging'],
     fuelType: 'Petrol',
@@ -61,7 +53,7 @@ export const cars = [
     year: 2020,
     price: 35900,
     mileage: 38000,
-    images: [audiA42, audiA41],
+    images: ['https://images.unsplash.com/photo-1544636331-e26879cd4d9b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
     description: 'Versatile wagon with premium features and spacious cargo area.',
     features: ['Quattro AWD', 'Panoramic sunroof', 'Bang & Olufsen sound', 'Adaptive cruise control'],
     fuelType: 'Petrol',
@@ -76,7 +68,7 @@ export const cars = [
     year: 2022,
     price: 29900,
     mileage: 25000,
-    images: [rav41, rav42],
+    images: ['https://images.unsplash.com/photo-1549399429-3c3ca0d67e87?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1609521263047-f8f205293f24?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
     description: 'Reliable SUV with excellent fuel economy and advanced safety features.',
     features: ['AWD', 'Toyota Safety Sense', 'Apple CarPlay', 'Backup camera'],
     fuelType: 'Hybrid',
@@ -91,7 +83,7 @@ export const cars = [
     year: 2021,
     price: 31500,
     mileage: 28000,
-    images: [rav42, rav41],
+    images: ['https://images.unsplash.com/photo-1609521263047-f8f205293f24?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1549399429-3c3ca0d67e87?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
     description: 'Eco-friendly SUV with outstanding fuel efficiency and modern technology.',
     features: ['AWD', 'Hybrid powertrain', 'Wireless charging', 'JBL premium audio'],
     fuelType: 'Hybrid',
@@ -106,7 +98,7 @@ export const cars = [
     year: 2020,
     price: 24500,
     mileage: 42000,
-    images: [accord1, accord2],
+    images: ['https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1572712194371-099e824d3dce?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
     description: 'Midsize sedan with spacious interior and excellent reliability record.',
     features: ['Honda Sensing', 'Automatic transmission', 'Dual-zone climate', 'Remote start'],
     fuelType: 'Petrol',
@@ -121,7 +113,7 @@ export const cars = [
     year: 2021,
     price: 27900,
     mileage: 35000,
-    images: [accord2, accord1],
+    images: ['https://images.unsplash.com/photo-1572712194371-099e824d3dce?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
     description: 'Sporty sedan with enhanced performance and premium interior features.',
     features: ['Sport mode', 'Paddle shifters', 'Bose audio system', 'Sunroof'],
     fuelType: 'Petrol',
