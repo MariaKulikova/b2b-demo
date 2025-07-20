@@ -73,3 +73,31 @@ BDD testing setup with Cucumber + Playwright:
 
 Feature files are in Russian (with #language: ru) but use English file names.
 Step definitions support Russian Gherkin keywords but variable names are in English.
+
+## CI/CD Pipeline
+
+GitHub Actions автоматизация настроена для обеспечения качества кода и автоматического деплоя:
+
+### Основной Pipeline (CI/CD)
+- **Триггеры**: Push в main/develop, Pull Requests в main
+- **Этапы**: 
+  1. Tests & Linting - линтинг и базовые BDD тесты
+  2. Build Project - сборка проекта
+  3. Deploy to GitHub Pages - автоматический деплой на GitHub Pages (только main branch)
+
+### Полное тестирование
+- **Расписание**: Ежедневно в 6:00 UTC
+- **Браузеры**: Chromium, Firefox, WebKit
+- **Lighthouse аудит**: Performance, Accessibility, Best Practices, SEO
+- **Ручной запуск**: Доступен через GitHub Actions UI
+
+### Команды для CI/CD
+- Workflows автоматически используют `pnpm` для всех операций
+- Артефакты тестов сохраняются на 7 дней
+- Скриншоты при ошибках автоматически загружаются
+- Production сборка включает 404.html для GitHub Pages routing
+
+### GitHub Pages
+- **URL**: Автоматически доступен через GitHub Pages
+- **Обновления**: При каждом push в main branch
+- **Конфигурация**: HashRouter для совместимости со статическим хостингом

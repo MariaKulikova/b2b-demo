@@ -1,0 +1,100 @@
+name: 🧪 Full Test Suite
+
+on:
+  schedule:
+    # Запускаем полные тесты каждый день в 6:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch: # Возможность запустить вручную
+  
+jobs:
+  full-bdd-tests:
+    name: 🎭 Full BDD Test Suite
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 🏗️ Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: latest
+        
+    - name: 📦 Install dependencies
+      run: pnpm install
+      
+    - name: 🎭 Install Playwright browsers
+      run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
+      
+    - name: 🚀 Start development server
+      run: |
+        pnpm dev &
+        sleep 10 # Ждем запуска сервера
+      
+    - name: 🧪 Run full BDD test suite
+      run: pnpm test:bdd
+      env:
+        BROWSER: ${{ matrix.browser }}
+      continue-on-error: true
+      
+    - name: 📊 Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.browser }}
+        path: reports/
+        retention-days: 7
+        
+    - name: 📱 Upload screenshots on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: screenshots-${{ matrix.browser }}
+        path: test-results/
+        retention-days: 7
+
+  lighthouse-audit:
+    name: 🏠 Lighthouse Performance Audit  
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: 🏗️ Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: latest
+        
+    - name: 📦 Install dependencies
+      run: pnpm install
+      
+    - name: 🏗️ Build project
+      run: pnpm build
+      
+    - name: 🚀 Start preview server
+      run: |
+        pnpm preview &
+        sleep 5
+        
+    - name: 🏠 Run Lighthouse audit
+      uses: treosh/lighthouse-ci-action@v10
+      with:
+        configPath: '.lighthouserc.json'
+        uploadArtifacts: true
+        temporaryPublicStorage: true
