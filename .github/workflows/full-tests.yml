@@ -1,9 +1,10 @@
 name: 🧪 Full Test Suite
 
 on:
-  schedule:
-    # Запускаем полные тесты каждый день в 6:00 UTC
-    - cron: '0 6 * * *'
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch: # Возможность запустить вручную
   
 jobs:

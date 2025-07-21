@@ -85,9 +85,9 @@ GitHub Actions автоматизация настроена для обеспе
   2. Build Project - сборка проекта
   3. Deploy to GitHub Pages - автоматический деплой на GitHub Pages (только main branch)
 
-### Полное тестирование
-- **Расписание**: Ежедневно в 6:00 UTC
-- **Браузеры**: Chromium, Firefox, WebKit
+### Полное тестирование 
+- **Триггеры**: Push/PR в main/develop
+- **Браузеры**: Chromium, Firefox, WebKit (matrix strategy)
 - **Lighthouse аудит**: Performance, Accessibility, Best Practices, SEO
 - **Ручной запуск**: Доступен через GitHub Actions UI
 
