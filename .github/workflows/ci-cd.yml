@@ -123,6 +123,7 @@ jobs:
         cp dist/index.html dist/404.html
       env:
         NODE_ENV: production
+        GITHUB_PAGES: true
         
     - name: 📄 Setup Pages
       uses: actions/configure-pages@v3
