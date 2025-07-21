@@ -56,7 +56,14 @@ jobs:
         publish_dir: ./dist
 ```
 
-## Проверка
+## ✅ НАСТРОЕН КАСТОМНЫЙ ДОМЕН
 
-После настройки сайт будет доступен по адресу:
-https://mariakulikova.github.io/b2b-demo/
+Сайт настроен на кастомный домен: **https://demo.shiftgears.ai/**
+
+**Конфигурация:**
+- Добавлен файл `public/CNAME` с доменом `demo.shiftgears.ai`
+- Base path установлен в `/` (корень домена)
+- Удалена переменная `GITHUB_PAGES` из CI (больше не нужна)
+
+**Проверка:**
+Сайт доступен по адресу: https://demo.shiftgears.ai/

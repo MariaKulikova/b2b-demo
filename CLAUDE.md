@@ -98,6 +98,7 @@ GitHub Actions автоматизация настроена для обеспе
 - Production сборка включает 404.html для GitHub Pages routing
 
 ### GitHub Pages
-- **URL**: Автоматически доступен через GitHub Pages
+- **URL**: https://demo.shiftgears.ai/ (кастомный домен)
 - **Обновления**: При каждом push в main branch
 - **Конфигурация**: HashRouter для совместимости со статическим хостингом
+- **CNAME**: Настроен на demo.shiftgears.ai

@@ -10,7 +10,7 @@ export default defineConfig(({ command, mode }) => {
   
   return {
     plugins: [react(), tailwindcss()],
-    base: isGitHubPages ? '/b2b-demo/' : '/',
+    base: '/',
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
