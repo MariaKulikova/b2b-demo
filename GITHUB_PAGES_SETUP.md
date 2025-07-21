@@ -1,9 +1,17 @@
 # GitHub Pages Setup Instructions
 
-## Проблема
-GitHub Actions workflow настроен, но GitHub Pages не работает.
+## ✅ ИСПРАВЛЕНО: MIME Type Error
 
-## Решение
+**Проблема была в том, что:**
+- В CI не было переменной окружения `GITHUB_PAGES=true`
+- Из-за этого Vite собирал проект с неправильным base path
+- GitHub Pages получал файлы с путями `/assets/...` вместо `/b2b-demo/assets/...`
+
+**Исправление:**
+- Добавлена переменная `GITHUB_PAGES: true` в CI workflow
+- Теперь сборка использует правильный base path `/b2b-demo/`
+
+## Настройка в GitHub (если еще не сделано)
 
 1. **Перейти в Settings репозитория**:
    https://github.com/MariaKulikova/b2b-demo/settings/pages
