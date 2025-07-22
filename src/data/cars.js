@@ -68,12 +68,12 @@ export const cars = [
     year: 2022,
     price: 29900,
     mileage: 25000,
-    images: ['https://images.unsplash.com/photo-1549399429-3c3ca0d67e87?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1609521263047-f8f205293f24?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
-    description: 'Reliable SUV with excellent fuel economy and advanced safety features.',
-    features: ['AWD', 'Toyota Safety Sense', 'Apple CarPlay', 'Backup camera'],
+    images: ['https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
+    description: 'Reliable SUV with excellent fuel economy and advanced safety features. Perfect for Amsterdam city driving and weekend adventures.',
+    features: ['AWD', 'Toyota Safety Sense 2.0', 'Apple CarPlay', 'Backup camera', 'LED headlights'],
     fuelType: 'Hybrid',
     transmission: 'CVT',
-    color: 'Blue',
+    color: 'Blueprint Blue',
     isHotOffer: true
   },
   {
@@ -113,12 +113,12 @@ export const cars = [
     year: 2021,
     price: 27900,
     mileage: 35000,
-    images: ['https://images.unsplash.com/photo-1572712194371-099e824d3dce?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
-    description: 'Sporty sedan with enhanced performance and premium interior features.',
-    features: ['Sport mode', 'Paddle shifters', 'Bose audio system', 'Sunroof'],
+    images: ['https://images.unsplash.com/photo-1606220945770-b5b6c2c3b6c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1553440569-bcc63803a83d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
+    description: 'Sporty sedan with enhanced performance and premium interior features. Featuring the powerful 1.5T turbo engine.',
+    features: ['Sport mode', 'Paddle shifters', 'Bose premium audio', 'Sunroof', 'Honda Sensing Suite'],
     fuelType: 'Petrol',
     transmission: 'CVT',
-    color: 'Red',
+    color: 'Radiant Red',
     isHotOffer: false
   }
 ];
