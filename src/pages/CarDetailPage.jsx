@@ -178,7 +178,7 @@ const CarDetailPage = () => {
                 <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
                 <div className="space-y-2 text-gray-600">
                   <p><strong>Phone:</strong> +44 7418 613962</p>
-                  <p><strong>Email:</strong> info@coolcars.nl</p>
+                  <p><strong>Email:</strong> info@shiftgears.ai</p>
                   <p><strong>Locations:</strong> Amsterdam North & South</p>
                 </div>
               </CardContent>
