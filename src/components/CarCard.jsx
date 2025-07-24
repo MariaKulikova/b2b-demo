@@ -6,12 +6,12 @@ import { Card, CardContent } from './ui/card';
 
 const CarCard = ({ car, onBookTestDrive }) => {
   const handleCallUs = () => {
-    window.location.href = 'tel:+31201234567';
+    window.location.href = 'tel:+447418613962';
   };
 
   const handleWhatsApp = () => {
     const message = `Hi! I'm interested in the ${car.year} ${car.make} ${car.model} (€${car.price.toLocaleString()})`;
-    const whatsappUrl = `https://wa.me/31201234567?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/447418613962?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 

@@ -45,7 +45,7 @@ This is a React + Vite car dealer demo website for "Cool Cars Amsterdam" with th
 Cars have properties: id, make, model, year, price, mileage, images[], description, features[], fuelType, transmission, color, isHotOffer
 
 ### Contact Information
-- Phone: +31201234567
+- Phone: +447418613962
 - WhatsApp: Same number with pre-filled messages for car inquiries
 
 ## Language Guidelines

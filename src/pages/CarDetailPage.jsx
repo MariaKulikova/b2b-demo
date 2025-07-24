@@ -28,12 +28,12 @@ const CarDetailPage = () => {
   }
 
   const handleCallUs = () => {
-    window.location.href = 'tel:+31201234567';
+    window.location.href = 'tel:+447418613962';
   };
 
   const handleWhatsApp = () => {
     const message = `Hi! I'm interested in the ${car.year} ${car.make} ${car.model} (€${car.price.toLocaleString()})`;
-    const whatsappUrl = `https://wa.me/31201234567?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/447418613962?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -177,7 +177,7 @@ const CarDetailPage = () => {
               <CardContent className="p-6">
                 <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
                 <div className="space-y-2 text-gray-600">
-                  <p><strong>Phone:</strong> +31 20 123 4567</p>
+                  <p><strong>Phone:</strong> +44 7418 613962</p>
                   <p><strong>Email:</strong> info@coolcars.nl</p>
                   <p><strong>Locations:</strong> Amsterdam North & South</p>
                 </div>

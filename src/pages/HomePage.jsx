@@ -126,9 +126,9 @@ const HomePage = () => {
               size="lg"
               variant="outline"
               className="border-white text-white hover:bg-white hover:text-gray-900"
-              onClick={() => window.location.href = 'tel:+31201234567'}
+              onClick={() => window.location.href = 'tel:+447418613962'}
             >
-              Call Now: +31 20 123 4567
+              Call Now: +44 7418 613962
             </Button>
           </div>
         </div>

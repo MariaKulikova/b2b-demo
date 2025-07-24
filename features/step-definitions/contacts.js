@@ -140,8 +140,8 @@ Then('инициируется звонок на номер {string}', async fun
   // Проверяем разные форматы номера
   const hasPhone = pageContent.includes(phoneWithoutSpaces) || 
                    pageContent.includes(phoneFormatted) ||
-                   pageContent.includes('+31 20 123 4567') ||
-                   pageContent.includes('31201234567');
+                   pageContent.includes('+44 7418 613962') ||
+                   pageContent.includes('447418613962');
   
   expect(hasPhone).toBeTruthy();
 });

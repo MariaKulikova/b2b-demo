@@ -140,8 +140,8 @@ const ContactPage = () => {
                   <Phone className="h-5 w-5 text-blue-600" />
                   <div>
                     <p className="font-medium">Phone</p>
-                    <a href="tel:+31201234567" className="text-blue-600 hover:text-blue-800">
-                      +31 20 123 4567
+                    <a href="tel:+447418613962" className="text-blue-600 hover:text-blue-800">
+                      +44 7418 613962
                     </a>
                   </div>
                 </div>
@@ -226,7 +226,7 @@ const ContactPage = () => {
               <CardContent className="space-y-3">
                 <Button
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                  onClick={() => window.location.href = 'tel:+31201234567'}
+                  onClick={() => window.location.href = 'tel:+447418613962'}
                 >
                   <Phone className="h-4 w-4 mr-2" />
                   Call Now
@@ -236,7 +236,7 @@ const ContactPage = () => {
                   className="w-full border-green-500 text-green-600 hover:bg-green-50"
                   onClick={() => {
                     const message = "Hi! I'd like to know more about your cars.";
-                    const whatsappUrl = `https://wa.me/31201234567?text=${encodeURIComponent(message)}`;
+                    const whatsappUrl = `https://wa.me/447418613962?text=${encodeURIComponent(message)}`;
                     window.open(whatsappUrl, '_blank');
                   }}
                 >

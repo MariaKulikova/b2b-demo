@@ -47,7 +47,7 @@ const Header = () => {
           <div className="hidden lg:flex items-center space-x-4">
             <div className="flex items-center space-x-1 text-sm text-gray-600">
               <Phone className="h-4 w-4" />
-              <span>+31 20 123 4567</span>
+              <span>+44 7418 613962</span>
             </div>
             <div className="flex items-center space-x-1 text-sm text-gray-600">
               <MapPin className="h-4 w-4" />
@@ -92,7 +92,7 @@ const Header = () => {
               <div className="px-3 py-2 border-t">
                 <div className="flex items-center space-x-1 text-sm text-gray-600 mb-2">
                   <Phone className="h-4 w-4" />
-                  <span>+31 20 123 4567</span>
+                  <span>+44 7418 613962</span>
                 </div>
                 <div className="flex items-center space-x-1 text-sm text-gray-600">
                   <MapPin className="h-4 w-4" />
