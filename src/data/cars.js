@@ -1,12 +1,12 @@
 // Car inventory data for Cool Cars Amsterdam
-import bmwSedan1 from '../assets/cars/bmw-sedan-1.jpg';
-import bmwSedan2 from '../assets/cars/bmw-sedan-2.jpg';
-import audiA41 from '../assets/cars/audi-a4-1.jpg';
-import audiA42 from '../assets/cars/audi-a4-2.jpg';
-import rav41 from '../assets/cars/rav4-1.jpg';
-import rav42 from '../assets/cars/rav4-2.jpg';
-import accord1 from '../assets/cars/accord-1.jpg';
-import accord2 from '../assets/cars/accord-2.jpg';
+const bmwSedan1 = '/assets/cars/bmw-sedan-1.jpg';
+const bmwSedan2 = '/assets/cars/bmw-sedan-2.jpg';
+const audiA41 = '/assets/cars/audi-a4-1.jpg';
+const audiA42 = '/assets/cars/audi-a4-2.jpg';
+const rav41 = '/assets/cars/rav4-1.jpg';
+const rav42 = '/assets/cars/rav4-2.jpg';
+const accord1 = '/assets/cars/accord-1.jpg';
+const accord2 = '/assets/cars/accord-2.jpg';
 
 export const cars = [
   {
