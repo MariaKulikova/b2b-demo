@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Phone, MessageCircle, Calendar, Fuel, Cog, Palette, MapPin } from 'lucide-react';
+import { ArrowLeft, Phone, Calendar, Fuel, Cog, Palette, MapPin } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import TestDriveModal from '../components/TestDriveModal';
@@ -168,7 +168,7 @@ const CarDetailPage = () => {
                 size="lg"
                 className="icon-button border-green-500 text-green-600 hover:bg-green-50 p-3"
               >
-                <MessageCircle className="h-5 w-5" />
+                <img src="/assets/whatsapp-icon.png" alt="WhatsApp" className="h-5 w-5" />
               </Button>
             </div>
 

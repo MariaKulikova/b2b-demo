@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, MessageCircle } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 
@@ -66,7 +66,7 @@ const CarCard = ({ car, onBookTestDrive }) => {
             size="icon"
             className="icon-button border-green-500 text-green-600 hover:bg-green-50"
           >
-            <MessageCircle className="h-4 w-4" />
+            <img src="/assets/whatsapp-icon.png" alt="WhatsApp" className="h-4 w-4" />
           </Button>
         </div>
 
