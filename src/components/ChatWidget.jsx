@@ -10,7 +10,13 @@ const ChatWidget = () => {
       mode: 'window',
       showWelcomeScreen: true,
       chatInputKey: 'chatInput',
-      chatSessionKey: 'sessionId'
+      chatSessionKey: 'sessionId',
+      webhookConfig: {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
     });
   }, []);
 
