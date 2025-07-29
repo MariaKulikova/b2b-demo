@@ -1,18 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Phone, Calendar, Fuel, Cog, Palette, MapPin } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
-import TestDriveModal from '../components/TestDriveModal';
-import { getCarById, getAllCars } from '../data/cars';
+import { getCarById } from '../data/cars';
 
 const CarDetailPage = () => {
   const { id } = useParams();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   
   const car = getCarById(id);
-  const allCars = getAllCars();
 
   if (!car) {
     return (
@@ -38,7 +35,10 @@ const CarDetailPage = () => {
   };
 
   const handleBookTestDrive = () => {
-    setIsModalOpen(true);
+    const message = `Hi! I'd like to book a test drive for ${car.year} ${car.make} ${car.model}`;
+    if (window.openChatWithMessage) {
+      window.openChatWithMessage(message);
+    }
   };
 
   return (
@@ -148,28 +148,24 @@ const CarDetailPage = () => {
               <Button
                 onClick={handleBookTestDrive}
                 size="lg"
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white cta-button"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white cta-button cursor-pointer"
               >
                 Book Test Drive
               </Button>
               
-              <Button
+              <button
                 onClick={handleCallUs}
-                variant="outline"
-                size="lg"
-                className="icon-button border-green-500 text-green-600 hover:bg-green-50 p-3"
+                className="h-12 w-12 flex items-center justify-center rounded-md border border-green-500 bg-white hover:bg-green-50 transition-colors cursor-pointer"
               >
-                <Phone className="h-5 w-5" />
-              </Button>
+                <Phone className="h-6 w-6 text-green-600" />
+              </button>
               
-              <Button
+              <button
                 onClick={handleWhatsApp}
-                variant="outline"
-                size="lg"
-                className="icon-button border-green-500 text-green-600 hover:bg-green-50 p-3"
+                className="h-12 w-12 rounded-md overflow-hidden hover:opacity-80 transition-opacity cursor-pointer"
               >
-                <img src="/assets/whatsapp-icon.png" alt="WhatsApp" className="h-5 w-5" />
-              </Button>
+                <img src="/assets/whatsapp-icon.png" alt="WhatsApp" className="h-full w-full object-cover" />
+              </button>
             </div>
 
             {/* Contact Info */}
@@ -186,12 +182,6 @@ const CarDetailPage = () => {
           </div>
         </div>
 
-        <TestDriveModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          selectedCar={car}
-          cars={allCars}
-        />
       </div>
     </div>
   );

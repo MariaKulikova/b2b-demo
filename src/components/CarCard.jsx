@@ -4,7 +4,7 @@ import { Phone } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 
-const CarCard = ({ car, onBookTestDrive }) => {
+const CarCard = ({ car }) => {
   const handleCallUs = () => {
     window.location.href = 'tel:+447418613962';
   };
@@ -13,6 +13,13 @@ const CarCard = ({ car, onBookTestDrive }) => {
     const message = `Hi! I'm interested in the ${car.year} ${car.make} ${car.model} (€${car.price.toLocaleString()})`;
     const whatsappUrl = `https://wa.me/447418613962?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+  };
+
+  const handleBookTestDrive = () => {
+    const message = `Hi! I'd like to book a test drive for ${car.year} ${car.make} ${car.model}`;
+    if (window.openChatWithMessage) {
+      window.openChatWithMessage(message);
+    }
   };
 
   return (
@@ -45,29 +52,25 @@ const CarCard = ({ car, onBookTestDrive }) => {
 
         <div className="flex items-center space-x-2">
           <Button
-            onClick={() => onBookTestDrive(car)}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white cta-button"
+            onClick={handleBookTestDrive}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white cta-button cursor-pointer"
           >
             Book Test Drive
           </Button>
           
-          <Button
+          <button
             onClick={handleCallUs}
-            variant="outline"
-            size="icon"
-            className="icon-button border-green-500 text-green-600 hover:bg-green-50"
+            className="h-10 w-10 flex items-center justify-center rounded-md border border-green-500 bg-white hover:bg-green-50 transition-colors cursor-pointer"
           >
-            <Phone className="h-4 w-4" />
-          </Button>
+            <Phone className="h-5 w-5 text-green-600" />
+          </button>
           
-          <Button
+          <button
             onClick={handleWhatsApp}
-            variant="outline"
-            size="icon"
-            className="icon-button border-green-500 text-green-600 hover:bg-green-50"
+            className="h-10 w-10 rounded-md overflow-hidden hover:opacity-80 transition-opacity cursor-pointer"
           >
-            <img src="/assets/whatsapp-icon.png" alt="WhatsApp" className="h-4 w-4" />
-          </Button>
+            <img src="/assets/whatsapp-icon.png" alt="WhatsApp" className="h-full w-full object-cover" />
+          </button>
         </div>
 
         <Link
