@@ -2,3 +2,7 @@
 node_modules/
 dist/
 reports/
+
+# Environment variables (local development only)
+.env
+.env.local

@@ -1,16 +1,43 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Phone, Calendar, Fuel, Cog, Palette, MapPin } from 'lucide-react';
+import { ArrowLeft, Phone, Calendar, Fuel, Cog, Palette, MapPin, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
-import { getCarById } from '../data/cars';
+import { useCars } from '../context/CarsContext';
+import CarImagePlaceholder from '../components/CarImagePlaceholder';
 
 const CarDetailPage = () => {
   const { id } = useParams();
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
-  
+  const { getCarById, loading, error } = useCars();
+
   const car = getCarById(id);
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading car details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Error loading car: {error}</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Car not found
   if (!car) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -29,7 +56,8 @@ const CarDetailPage = () => {
   };
 
   const handleWhatsApp = () => {
-    const message = `Hi! I'm interested in the ${car.year} ${car.make} ${car.model} (€${car.price.toLocaleString()})`;
+    const priceText = car.price > 0 ? `€${car.price.toLocaleString()}` : 'price on request';
+    const message = `Hi! I'm interested in the ${car.year} ${car.make} ${car.model} (${priceText})`;
     const whatsappUrl = `https://wa.me/447418613962?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -54,29 +82,39 @@ const CarDetailPage = () => {
           {/* Image Gallery */}
           <div>
             <div className="mb-4">
-              <img
-                src={car.images[currentImageIndex]}
-                alt={`${car.make} ${car.model}`}
-                className="w-full h-96 object-cover rounded-lg shadow-lg"
-              />
+              {car.images && car.images.length > 0 ? (
+                <img
+                  src={car.images[currentImageIndex]}
+                  alt={`${car.make} ${car.model}`}
+                  className="w-full h-96 object-cover rounded-lg shadow-lg"
+                />
+              ) : (
+                <CarImagePlaceholder
+                  make={car.make}
+                  model={car.model}
+                  className="w-full h-96 rounded-lg shadow-lg"
+                />
+              )}
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              {car.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentImageIndex(index)}
-                  className={`relative overflow-hidden rounded-lg ${
-                    currentImageIndex === index ? 'ring-2 ring-blue-600' : ''
-                  }`}
-                >
-                  <img
-                    src={image}
-                    alt={`${car.make} ${car.model} view ${index + 1}`}
-                    className="w-full h-24 object-cover"
-                  />
-                </button>
-              ))}
-            </div>
+            {car.images && car.images.length > 1 && (
+              <div className="grid grid-cols-3 gap-2">
+                {car.images.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`relative overflow-hidden rounded-lg ${
+                      currentImageIndex === index ? 'ring-2 ring-blue-600' : ''
+                    }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`${car.make} ${car.model} view ${index + 1}`}
+                      className="w-full h-24 object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Car Details */}
@@ -91,7 +129,7 @@ const CarDetailPage = () => {
                 {car.year} {car.make} {car.model}
               </h1>
               <p className="text-3xl font-bold text-blue-600 mb-4">
-                €{car.price.toLocaleString()}
+                {car.price > 0 ? `€${car.price.toLocaleString()}` : 'Contact for price'}
               </p>
             </div>
 
@@ -108,7 +146,9 @@ const CarDetailPage = () => {
                   <div className="flex items-center space-x-2">
                     <MapPin className="h-5 w-5 text-gray-400" />
                     <span className="text-gray-600">Mileage:</span>
-                    <span className="font-medium">{car.mileage.toLocaleString()} km</span>
+                    <span className="font-medium">
+                      {car.mileage > 0 ? `${car.mileage.toLocaleString()} km` : 'N/A'}
+                    </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Fuel className="h-5 w-5 text-gray-400" />
@@ -134,12 +174,16 @@ const CarDetailPage = () => {
               <CardContent className="p-6">
                 <h3 className="text-lg font-semibold mb-3">Description</h3>
                 <p className="text-gray-600 mb-4">{car.description}</p>
-                <h4 className="font-medium mb-2">Features:</h4>
-                <ul className="list-disc list-inside text-gray-600 space-y-1">
-                  {car.features.map((feature, index) => (
-                    <li key={index}>{feature}</li>
-                  ))}
-                </ul>
+                {car.features && car.features.length > 0 && (
+                  <>
+                    <h4 className="font-medium mb-2">Features:</h4>
+                    <ul className="list-disc list-inside text-gray-600 space-y-1">
+                      {car.features.map((feature, index) => (
+                        <li key={index}>{feature}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
               </CardContent>
             </Card>
 

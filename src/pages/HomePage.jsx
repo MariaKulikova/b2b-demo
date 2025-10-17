@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Star, Shield, Award } from 'lucide-react';
+import { ArrowRight, Star, Shield, Award, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import CarCard from '../components/CarCard';
 import TestDriveModal from '../components/TestDriveModal';
-import { getHotOffers, getAllCars } from '../data/cars';
+import { useCars } from '../context/CarsContext';
 
 const HomePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
+  const { getHotOffers, getAllCars, loading, error } = useCars();
+
   const hotOffers = getHotOffers();
   const allCars = getAllCars();
 
@@ -86,24 +88,42 @@ const HomePage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {hotOffers.map((car) => (
-              <CarCard
-                key={car.id}
-                car={car}
-                onBookTestDrive={handleBookTestDrive}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <span className="ml-3 text-gray-600">Loading cars...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-600 mb-4">Error loading cars: {error}</p>
+              <Button onClick={() => window.location.reload()}>Retry</Button>
+            </div>
+          ) : hotOffers.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {hotOffers.map((car) => (
+                  <CarCard
+                    key={car.id}
+                    car={car}
+                    onBookTestDrive={handleBookTestDrive}
+                  />
+                ))}
+              </div>
 
-          <div className="text-center">
-            <Link to="/cars">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                View All Cars
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
+              <div className="text-center">
+                <Link to="/cars">
+                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                    View All Cars
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-600">No hot offers available at the moment</p>
+            </div>
+          )}
         </div>
       </section>
 

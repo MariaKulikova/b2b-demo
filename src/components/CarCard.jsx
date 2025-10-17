@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Phone } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
+import CarImagePlaceholder from './CarImagePlaceholder';
 
 const CarCard = ({ car }) => {
   const handleCallUs = () => {
@@ -10,7 +11,8 @@ const CarCard = ({ car }) => {
   };
 
   const handleWhatsApp = () => {
-    const message = `Hi! I'm interested in the ${car.year} ${car.make} ${car.model} (€${car.price.toLocaleString()})`;
+    const priceText = car.price > 0 ? `€${car.price.toLocaleString()}` : 'price on request';
+    const message = `Hi! I'm interested in the ${car.year} ${car.make} ${car.model} (${priceText})`;
     const whatsappUrl = `https://wa.me/447418613962?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -25,28 +27,36 @@ const CarCard = ({ car }) => {
   return (
     <Card className="car-card overflow-hidden">
       <div className="relative">
-        <img
-          src={car.images[0]}
-          alt={`${car.make} ${car.model}`}
-          className="w-full h-48 object-cover"
-        />
+        {car.images && car.images.length > 0 ? (
+          <img
+            src={car.images[0]}
+            alt={`${car.make} ${car.model}`}
+            className="w-full h-48 object-cover"
+          />
+        ) : (
+          <CarImagePlaceholder
+            make={car.make}
+            model={car.model}
+            className="w-full h-48"
+          />
+        )}
         {car.isHotOffer && (
           <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">
             HOT OFFER
           </div>
         )}
       </div>
-      
+
       <CardContent className="p-4">
         <div className="mb-3">
           <h3 className="text-lg font-semibold text-gray-900">
             {car.year} {car.make} {car.model}
           </h3>
           <p className="text-2xl font-bold text-blue-600">
-            €{car.price.toLocaleString()}
+            {car.price > 0 ? `€${car.price.toLocaleString()}` : 'Contact for price'}
           </p>
           <p className="text-sm text-gray-600">
-            {car.mileage.toLocaleString()} km • {car.fuelType} • {car.transmission}
+            {car.mileage > 0 ? `${car.mileage.toLocaleString()} km` : 'N/A'} • {car.fuelType} • {car.transmission}
           </p>
         </div>
 

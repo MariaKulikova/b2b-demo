@@ -1,27 +1,38 @@
 import { useEffect } from 'react';
 import { createChat } from '@n8n/chat';
 import '@n8n/chat/style.css';
+import { getOrCreateSessionId } from '../services/sessionManager';
 
 const ChatWidget = () => {
   useEffect(() => {
     // Note: There's a CORS issue when running locally. The chat will work properly when deployed to https://demo.shiftgears.ai
     try {
+      // Получаем единый sessionId из sessionManager (с TTL 24 часа)
+      // Это тот же sessionId что используется в VoiceAssistant
+      const sessionId = getOrCreateSessionId();
+
+      console.log('[ChatWidget] Initializing with session ID:', sessionId);
+
       createChat({
         webhookUrl: 'https://dealmx.app.n8n.cloud/webhook/852922ca-1f2d-4c85-a02b-863ca4d3c7eb/chat',
         target: '.chat-widget',
         mode: 'window',
         showWelcomeScreen: true,
         chatInputKey: 'chatInput',
-        chatSessionKey: 'sessionId',
+        chatSessionKey: 'app_sessionId', // Используем тот же ключ что и sessionManager
         webhookConfig: {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           }
+        },
+        // Передаём sessionId явно в metadata
+        metadata: {
+          sessionId: sessionId
         }
       });
     } catch (error) {
-      console.warn('N8N Chat initialization error (expected in localhost):', error);
+      console.warn('[ChatWidget] N8N Chat initialization error (expected in localhost):', error);
     }
 
     // Debug function to inspect n8n chat elements
