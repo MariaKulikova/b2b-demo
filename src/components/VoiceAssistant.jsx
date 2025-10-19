@@ -5,14 +5,59 @@ import { Button } from './ui/button';
 import { Orb } from './ui/orb';
 import { browserControlWS } from '../services/browserControlWebSocket';
 import { getOrCreateSessionId, refreshSession } from '../services/sessionManager';
+import { useCars } from '../context/CarsContext';
 
 // Agent ID и WebSocket URL из переменных окружения
 const AGENT_ID = import.meta.env.VITE_ELEVENLABS_AGENT_ID || 'agent_3701k17y6168fzg8zag3efhsmz7y';
 const WS_URL = import.meta.env.VITE_BROWSER_CONTROL_WS_URL || 'wss://car-frontend-api.test.meteora.pro/browser-control';
 
+/**
+ * Конвертация массива автомобилей в CSV формат
+ * @param {Array} cars - Массив объектов автомобилей
+ * @returns {string} CSV строка с данными об автомобилях
+ */
+const convertCarsToCSV = (cars) => {
+  if (!cars || cars.length === 0) {
+    return 'id,make,model,year,price,mileage,fuelType,transmission,color\n';
+  }
+
+  // Header
+  const header = 'id,make,model,year,price,mileage,fuelType,transmission,color';
+
+  // Rows
+  const rows = cars.map(car => {
+    // Экранируем значения, содержащие запятые или кавычки
+    const escapeCSV = (value) => {
+      if (value === null || value === undefined) return '';
+      const str = String(value);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    return [
+      escapeCSV(car.id),
+      escapeCSV(car.make),
+      escapeCSV(car.model),
+      escapeCSV(car.year),
+      escapeCSV(car.price),
+      escapeCSV(car.mileage),
+      escapeCSV(car.fuelType),
+      escapeCSV(car.transmission),
+      escapeCSV(car.color)
+    ].join(',');
+  });
+
+  return [header, ...rows].join('\n');
+};
+
 const VoiceAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const sessionIdRef = useRef(null);
+
+  // Получаем данные об автомобилях из контекста
+  const { cars } = useCars();
 
   // Инициализация useConversation хука
   const conversation = useConversation({
@@ -58,12 +103,17 @@ const VoiceAssistant = () => {
       // Запрашиваем доступ к микрофону
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      // Начинаем сессию с агентом, передаем session ID через dynamic variables
+      // Конвертируем автомобили в CSV формат
+      const availableCars = convertCarsToCSV(cars);
+      console.log('[VoiceAssistant] Available cars CSV:', availableCars.split('\n').length - 1, 'cars');
+
+      // Начинаем сессию с агентом, передаем session ID и доступные автомобили через dynamic variables
       await conversation.startSession({
         agentId: AGENT_ID,
         dynamicVariables: {
           sessionId: sessionId,
-          browserControlEnabled: true
+          browserControlEnabled: true,
+          availableCars: availableCars
         }
       });
 

@@ -16,7 +16,7 @@
 Наше приложение передает в ElevenLabs агента следующие динамические переменные:
 
 - `sessionId` - уникальный идентификатор сессии браузера (используется для управления браузером через WebSocket)
-- `browserControlEnabled` - флаг, указывающий что управление браузером доступно
+- `availableCars` - список доступных автомобилей в формате CSV (для информирования агента об инвентаре)
 
 Эти переменные передаются при запуске сессии через React SDK:
 
@@ -25,7 +25,8 @@ await conversation.startSession({
   agentId: AGENT_ID,
   dynamicVariables: {
     sessionId: sessionId,
-    browserControlEnabled: true
+    browserControlEnabled: true,
+    availableCars: availableCars  // CSV формат
   }
 });
 ```
@@ -55,12 +56,21 @@ to control the browser using the sessionId. This allows you to:
 Always use the sessionId when calling browser control MCP tools to ensure you're
 controlling the correct browser instance.
 
+AVAILABLE CARS INVENTORY:
+Below is the current inventory of available cars in CSV format:
+{{availableCars}}
+
+Each row contains: id, make, model, year, price, mileage, fuelType, transmission, color
+Use this information to answer questions about available cars, prices, and specifications.
+When referring to a specific car, use the car's ID to navigate to its details page.
+
 GUIDELINES:
 - Be friendly and professional
-- Provide accurate information about cars
+- Provide accurate information about cars from the availableCars inventory
 - Help customers find the right car for their needs
 - Offer to book test drives when appropriate
 - Use browser control to enhance the customer experience
+- When showing a car, use the car's ID from the inventory (e.g., view_car_123)
 ```
 
 ### Шаг 2: Включение Security Settings для Dynamic Variables
@@ -91,6 +101,26 @@ If {{browserControlEnabled}} is true, I can help you navigate the website.
 }
 ```
 
+### Пример 3: Использование availableCars для ответов
+
+Агент может использовать данные из `{{availableCars}}` для точных ответов о наличии и характеристиках автомобилей:
+
+**Формат CSV данных:**
+```csv
+id,make,model,year,price,mileage,fuelType,transmission,color
+1,BMW,X5,2022,75000,12000,Diesel,Automatic,Black
+2,Mercedes-Benz,C-Class,2023,55000,5000,Petrol,Automatic,Silver
+3,Audi,A4,2021,45000,25000,Diesel,Manual,Blue
+```
+
+**Пример диалога:**
+```
+Customer: "Do you have any BMW cars available?"
+Agent: "Yes! Looking at our current inventory, we have a 2022 BMW X5 in Black with 12,000 km,
+        priced at €75,000. It has a Diesel engine and automatic transmission.
+        Would you like me to show you more details about this car?"
+```
+
 ## Настройка System Prompt
 
 ### Рекомендуемая структура промпта
@@ -103,16 +133,25 @@ You are a helpful car dealership assistant...
 Session ID: {{sessionId}}
 Browser Control Enabled: {{browserControlEnabled}}
 
+[AVAILABLE INVENTORY]
+Current cars in stock (CSV format):
+{{availableCars}}
+
+Format: id,make,model,year,price,mileage,fuelType,transmission,color
+Use this data to answer questions about available cars accurately.
+
 [CAPABILITIES]
 When browser control is enabled, you can...
 
 [GUIDELINES]
+- Use availableCars data to provide accurate inventory information
+- Reference car IDs when navigating (e.g., view_car_1)
 - Do this...
 - Don't do that...
 
 [EXAMPLE SCENARIOS]
 Customer: "I want to see the BMW X5"
-You: Let me navigate to that car for you... [uses browser control]
+You: Let me navigate to that car for you... [uses browser control with car ID from availableCars]
 ```
 
 ## Тестирование
