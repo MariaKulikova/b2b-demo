@@ -1,7 +1,10 @@
 // API service для получения данных об автомобилях
 
 const API_BASE_URL = import.meta.env.VITE_CAR_API_URL || 'https://car-frontend-api.test.meteora.pro';
-const DEALER_ID = import.meta.env.VITE_DEALER_ID || 'shiftgears_demo';
+const INVENTORY_ID = import.meta.env.VITE_INVENTORY_ID || 'shiftgears_demo';
+
+// Экспортируем INVENTORY_ID для использования в других модулях (например, browser control)
+export { INVENTORY_ID };
 
 /**
  * Получить список всех автомобилей из API
@@ -10,7 +13,7 @@ const DEALER_ID = import.meta.env.VITE_DEALER_ID || 'shiftgears_demo';
 export const fetchCarInventory = async () => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/dealer-inventory/${DEALER_ID}`,
+      `${API_BASE_URL}/dealer-inventory/${INVENTORY_ID}`,
       {
         headers: {
           'accept': 'application/json'

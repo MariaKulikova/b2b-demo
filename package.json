@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:local": "vite --mode local",
+    "dev:test": "vite --mode development",
     "build": "vite build",
+    "build:test": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 50",
     "test:bdd": "cucumber-js features/*.feature --config cucumber.config.js",

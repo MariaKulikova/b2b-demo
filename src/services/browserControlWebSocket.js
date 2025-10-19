@@ -849,7 +849,8 @@ class BrowserControlWebSocket {
       route: route,  // Для HashRouter: #/cars -> /cars
       hash: hash,    // Полный hash с символом #
       title: document.title,
-      description: document.querySelector('meta[name="description"]')?.content || ''
+      description: document.querySelector('meta[name="description"]')?.content || '',
+      inventoryId: this.appConfig.metadata?.inventoryId  // ID источника инвентаря для voice agent
     };
   }
 
