@@ -1038,12 +1038,56 @@ if (typeof window !== 'undefined') {
       console.log('  window.browserControl.execute("cmd_id")   - Execute a command');
       console.log('  window.browserControl.getCommands()       - Get commands array');
       console.log('  window.browserControl.status()            - Show connection status');
+      console.log('  window.browserControl.debugVoiceSession() - Start debug session without ElevenLabs');
       console.log('  window.browserControl.help()              - Show this help\n');
       console.log('Examples:');
       console.log('  window.browserControl.list()');
       console.log('  window.browserControl.search("bmw")');
       console.log('  window.browserControl.execute("view_car_1")');
+      console.log('  window.browserControl.debugVoiceSession()');
       console.log('');
+    },
+
+    /**
+     * Запуск отладочной сессии управления браузером БЕЗ подключения к ElevenLabs
+     * Полезно для тестирования команд управления браузером
+     * @example window.browserControl.debugVoiceSession()
+     */
+    debugVoiceSession: async () => {
+      try {
+        // Импортируем sessionManager
+        const { getOrCreateSessionId, refreshSession } = await import('./sessionManager.js');
+
+        // Получаем или создаём sessionId
+        const sessionId = getOrCreateSessionId();
+        console.log('\n=== Debug Voice Session ===');
+        console.log(`Session ID: ${sessionId}`);
+
+        // Обновляем timestamp сессии
+        refreshSession();
+
+        // Получаем WebSocket URL из переменных окружения
+        const wsUrl = import.meta.env.VITE_BROWSER_CONTROL_WS_URL || 'wss://car-frontend-api.test.meteora.pro/browser-control';
+        console.log(`WebSocket URL: ${wsUrl}`);
+
+        // Подключаемся к WebSocket серверу
+        console.log('\nConnecting to Browser Control WebSocket...');
+        await browserControlWS.connect(wsUrl, sessionId);
+
+        console.log('\n✓ Debug session started successfully!');
+        console.log('\nNow you can:');
+        console.log('  - Use window.browserControl.list() to see available commands');
+        console.log('  - Use window.browserControl.execute("command_id") to execute commands');
+        console.log('  - Use window.browserControl.status() to check connection status');
+        console.log('  - Send commands from external systems using sessionId:', sessionId);
+        console.log('\nTo disconnect, use: browserControlWS.disconnect()\n');
+
+        return { success: true, sessionId, wsUrl };
+      } catch (error) {
+        console.error('\n✗ Failed to start debug session:', error);
+        console.error('Error details:', error.message);
+        return { success: false, error: error.message };
+      }
     }
   };
 

@@ -105,6 +105,32 @@ WebSocket URL для управления браузером через голо
 ### VITE_ELEVENLABS_AGENT_ID
 ID агента ElevenLabs для голосового помощника
 
+## GitHub Actions и GitHub Secrets
+
+Для автоматического деплоя на GitHub Pages используются GitHub Secrets вместо коммита .env файлов.
+
+### Настройка GitHub Secrets
+
+1. Перейдите в Settings → Secrets and variables → Actions
+2. Добавьте следующие secrets (кнопка "New repository secret"):
+
+| Secret Name | Описание | Значение |
+|-------------|----------|----------|
+| `VITE_CAR_API_URL` | URL API сервера | `https://car-frontend-api.test.meteora.pro` |
+| `VITE_INVENTORY_ID` | ID источника инвентаря | `shiftgears_demo` |
+| `VITE_BROWSER_CONTROL_WS_URL` | WebSocket URL для управления браузером | `wss://car-frontend-api.test.meteora.pro/browser-control` |
+| `VITE_ELEVENLABS_AGENT_ID` | ID агента ElevenLabs | `agent_4301k7vnxwhne8r93z3tqjkyh647` |
+
+### Как это работает
+
+При деплое на GitHub Pages:
+1. CI/CD pipeline запускает production build
+2. Vite берёт переменные окружения из GitHub Secrets (не из .env файлов)
+3. Значения встраиваются в собранный JavaScript код
+4. Результат деплоится на GitHub Pages
+
+**Важно:** Любые изменения переменных окружения для production нужно делать через GitHub Secrets, а не через .env файлы.
+
 ## Troubleshooting
 
 ### Приложение использует неправильное окружение
@@ -118,3 +144,9 @@ ID агента ElevenLabs для голосового помощника
 1. Перезапустите dev сервер (Vite кеширует переменные)
 2. Проверьте, что переменная начинается с `VITE_`
 3. Очистите кеш: `rm -rf node_modules/.vite`
+
+### Production деплой использует старые значения
+
+1. Проверьте GitHub Secrets в Settings → Secrets and variables → Actions
+2. Обновите нужные secrets с новыми значениями
+3. Запустите новый деплой (push в main branch)

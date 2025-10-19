@@ -120,6 +120,10 @@ jobs:
         cp .nojekyll dist/
       env:
         NODE_ENV: production
+        VITE_CAR_API_URL: ${{ secrets.VITE_CAR_API_URL }}
+        VITE_INVENTORY_ID: ${{ secrets.VITE_INVENTORY_ID }}
+        VITE_BROWSER_CONTROL_WS_URL: ${{ secrets.VITE_BROWSER_CONTROL_WS_URL }}
+        VITE_ELEVENLABS_AGENT_ID: ${{ secrets.VITE_ELEVENLABS_AGENT_ID }}
         
     - name: 📄 Setup Pages
       uses: actions/configure-pages@v4
