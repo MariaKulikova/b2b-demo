@@ -1,11 +1,12 @@
 import { useState, useCallback, useRef } from 'react';
 import { useConversation } from '@elevenlabs/react';
-import { Mic, X, Phone } from 'lucide-react';
+import { Mic, X, Phone, MessageSquare } from 'lucide-react';
 import { Button } from './ui/button';
 import { Orb } from './ui/orb';
 import { browserControlWS } from '../services/browserControlWebSocket';
 import { getOrCreateSessionId, refreshSession } from '../services/sessionManager';
 import { useCars } from '../context/CarsContext';
+import TranscriptModal from './TranscriptModal';
 
 // Agent ID и WebSocket URL из переменных окружения
 const AGENT_ID = import.meta.env.VITE_ELEVENLABS_AGENT_ID || 'agent_3701k17y6168fzg8zag3efhsmz7y';
@@ -54,6 +55,8 @@ const convertCarsToCSV = (cars) => {
 
 const VoiceAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([]); // Transcript messages
+  const [showFullTranscript, setShowFullTranscript] = useState(false); // Modal state
   const sessionIdRef = useRef(null);
 
   // Получаем данные об автомобилях из контекста
@@ -69,6 +72,16 @@ const VoiceAssistant = () => {
     },
     onMessage: (message) => {
       console.log('Message from agent:', message);
+
+      // Добавляем сообщение в transcript
+      // message может содержать: {source: 'user'|'ai', message: string, ...}
+      if (message && message.message) {
+        setMessages(prev => [...prev, {
+          role: message.source || 'ai', // 'user' | 'ai'
+          text: message.message,
+          timestamp: new Date()
+        }]);
+      }
     },
     onError: (error) => {
       console.error('ElevenLabs error:', error);
@@ -81,6 +94,9 @@ const VoiceAssistant = () => {
   // Функция для начала разговора
   const startConversation = useCallback(async () => {
     try {
+      // Очищаем предыдущие сообщения при новой сессии
+      setMessages([]);
+
       // Получаем или создаём sessionId с TTL 24 часа (управляется sessionManager)
       // SessionId будет одинаковым при перезагрузке страницы в течение 24 часов
       const sessionId = getOrCreateSessionId();
@@ -242,6 +258,19 @@ const VoiceAssistant = () => {
                 </div>
               )}
 
+              {/* Кнопка транскрипта */}
+              {status === 'connected' && messages.length > 0 && (
+                <Button
+                  onClick={() => setShowFullTranscript(true)}
+                  size="sm"
+                  variant="outline"
+                  className="gap-1"
+                >
+                  <MessageSquare className="h-3 w-3" />
+                  Transcript ({messages.length})
+                </Button>
+              )}
+
               {/* Кнопка завершения */}
               {status === 'connected' && (
                 <Button
@@ -265,6 +294,26 @@ const VoiceAssistant = () => {
             </div>
           </div>
 
+          {/* Секция субтитров (последние 3 сообщения) */}
+          {status === 'connected' && messages.length > 0 && (
+            <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 max-h-24 overflow-y-auto">
+              <div className="space-y-2">
+                {messages.slice(-3).map((msg, index) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <span className={`text-xs font-semibold flex-shrink-0 ${
+                      msg.role === 'user' ? 'text-blue-600' : 'text-gray-600'
+                    }`}>
+                      {msg.role === 'user' ? 'You:' : 'AI:'}
+                    </span>
+                    <span className="text-xs text-gray-700 line-clamp-2">
+                      {msg.text}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Информация о микрофоне (если отключен) */}
           {status === 'disconnected' && (
             <div className="px-6 py-3 bg-blue-50 border-t border-blue-100">
@@ -275,6 +324,13 @@ const VoiceAssistant = () => {
           )}
         </div>
       </div>
+
+      {/* Модальное окно с полным транскриптом */}
+      <TranscriptModal
+        isOpen={showFullTranscript}
+        onClose={() => setShowFullTranscript(false)}
+        messages={messages}
+      />
     </>
   );
 };
