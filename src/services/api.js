@@ -1,7 +1,7 @@
 // API service для получения данных об автомобилях
 
 const API_BASE_URL = import.meta.env.VITE_CAR_API_URL || 'https://car-frontend-api.test.meteora.pro';
-const INVENTORY_ID = import.meta.env.VITE_INVENTORY_ID || 'shiftgears_demo';
+const INVENTORY_ID = import.meta.env.VITE_INVENTORY_ID || 'autopolis_shiftgears_demo';
 
 // Экспортируем INVENTORY_ID для использования в других модулях (например, browser control)
 export { INVENTORY_ID };

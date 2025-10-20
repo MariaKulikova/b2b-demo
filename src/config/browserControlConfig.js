@@ -45,7 +45,7 @@ export const metadata = {
   appName: 'Cool Cars Amsterdam',
   domain: 'demo.shiftgears.ai',
   description: 'Car dealership website for browsing and booking test drives',
-  inventoryId: import.meta.env.VITE_INVENTORY_ID || 'shiftgears_demo',
+  inventoryId: import.meta.env.VITE_INVENTORY_ID || 'autopolis_shiftgears_demo',
   features: [
     'Car search and filtering',
     'Detailed car information',

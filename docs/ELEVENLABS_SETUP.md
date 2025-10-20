@@ -237,4 +237,4 @@ VITE_BROWSER_CONTROL_WS_URL=wss://car-frontend-api.test.meteora.pro/browser-cont
 | `VITE_ELEVENLABS_AGENT_ID` | ID агента ElevenLabs | `agent_5401k7rsje0efeha45my8vkajp8t` | `agent_3701k17y6168fzg8zag3efhsmz7y` |
 | `VITE_BROWSER_CONTROL_WS_URL` | URL WebSocket сервера | `ws://localhost:4335/browser-control` | `wss://car-frontend-api.test.meteora.pro/browser-control` |
 | `VITE_CAR_API_URL` | URL Car Inventory API | `http://localhost:4335` | `https://car-frontend-api.test.meteora.pro` |
-| `VITE_DEALER_ID` | ID дилера | `shiftgears_demo` | `shiftgears_demo` |
+| `VITE_DEALER_ID` | ID дилера | `autopolis_shiftgears_demo` | `autopolis_shiftgears_demo` |

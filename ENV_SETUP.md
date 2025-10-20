@@ -117,7 +117,7 @@ ID агента ElevenLabs для голосового помощника
 | Secret Name | Описание | Значение |
 |-------------|----------|----------|
 | `VITE_CAR_API_URL` | URL API сервера | `https://car-frontend-api.test.meteora.pro` |
-| `VITE_INVENTORY_ID` | ID источника инвентаря | `shiftgears_demo` |
+| `VITE_INVENTORY_ID` | ID источника инвентаря | `autopolis_shiftgears_demo` |
 | `VITE_BROWSER_CONTROL_WS_URL` | WebSocket URL для управления браузером | `wss://car-frontend-api.test.meteora.pro/browser-control` |
 | `VITE_ELEVENLABS_AGENT_ID` | ID агента ElevenLabs | `agent_4301k7vnxwhne8r93z3tqjkyh647` |
 
