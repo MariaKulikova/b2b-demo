@@ -7,3 +7,5 @@ reports/
 # Коммитится только .env.example, все остальные .env файлы локальные
 .env*
 !.env.example
+.DS_Store
+scripts/
