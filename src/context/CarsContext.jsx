@@ -33,7 +33,7 @@ export const CarsProvider = ({ children }) => {
 
   // Вспомогательные функции для работы с данными
   const getHotOffers = () => cars.filter(car => car.isHotOffer);
-  const getCarById = (id) => cars.find(car => car.id === parseInt(id));
+  const getCarById = (id) => cars.find(car => car.id === String(id));
   const getAllCars = () => cars;
 
   const value = {
