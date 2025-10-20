@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { fetchCarInventory } from '../services/api';
 
 // Создаем контекст для управления данными автомобилей
