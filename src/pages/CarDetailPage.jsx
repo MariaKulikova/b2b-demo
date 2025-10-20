@@ -81,18 +81,18 @@ const CarDetailPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Image Gallery */}
           <div>
-            <div className="mb-4">
+            <div className="mb-4 aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden shadow-lg">
               {car.images && car.images.length > 0 ? (
                 <img
                   src={car.images[currentImageIndex]}
                   alt={`${car.make} ${car.model}`}
-                  className="w-full h-96 object-cover rounded-lg shadow-lg"
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <CarImagePlaceholder
                   make={car.make}
                   model={car.model}
-                  className="w-full h-96 rounded-lg shadow-lg"
+                  className="w-full h-full"
                 />
               )}
             </div>
@@ -102,14 +102,14 @@ const CarDetailPage = () => {
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`relative overflow-hidden rounded-lg ${
+                    className={`relative aspect-[4/3] overflow-hidden rounded-lg bg-gray-100 ${
                       currentImageIndex === index ? 'ring-2 ring-blue-600' : ''
                     }`}
                   >
                     <img
                       src={image}
                       alt={`${car.make} ${car.model} view ${index + 1}`}
-                      className="w-full h-24 object-cover"
+                      className="w-full h-full object-cover"
                     />
                   </button>
                 ))}

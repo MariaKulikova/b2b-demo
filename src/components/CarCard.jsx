@@ -26,18 +26,18 @@ const CarCard = ({ car }) => {
 
   return (
     <Card className="car-card overflow-hidden">
-      <div className="relative">
+      <div className="relative aspect-[4/3] bg-gray-100">
         {car.images && car.images.length > 0 ? (
           <img
             src={car.images[0]}
             alt={`${car.make} ${car.model}`}
-            className="w-full h-48 object-cover"
+            className="w-full h-full object-cover"
           />
         ) : (
           <CarImagePlaceholder
             make={car.make}
             model={car.model}
-            className="w-full h-48"
+            className="w-full h-full"
           />
         )}
         {car.isHotOffer && (
