@@ -1,21 +1,60 @@
-import React, { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { RangeSlider } from '../components/ui/range-slider';
 import CarCard from '../components/CarCard';
 import TestDriveModal from '../components/TestDriveModal';
 import { useCars } from '../context/CarsContext';
 
 const CarsPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [makeFilter, setMakeFilter] = useState('');
-  const [modelFilter, setModelFilter] = useState('');
-  const [priceFilter, setPriceFilter] = useState('');
 
   const { getAllCars, loading, error } = useCars();
   const allCars = getAllCars();
+
+  // Вычисляем диапазон цен из всех автомобилей
+  const priceRange = useMemo(() => {
+    const prices = allCars.filter(car => car.price > 0).map(car => car.price);
+    if (prices.length === 0) return { min: 0, max: 100000 };
+    return {
+      min: Math.floor(Math.min(...prices) / 1000) * 1000,
+      max: Math.ceil(Math.max(...prices) / 1000) * 1000
+    };
+  }, [allCars]);
+
+  // Вычисляем диапазон пробега из всех автомобилей
+  const mileageRange = useMemo(() => {
+    const mileages = allCars.filter(car => car.mileage > 0).map(car => car.mileage);
+    if (mileages.length === 0) return { min: 0, max: 200000 };
+    return {
+      min: Math.floor(Math.min(...mileages) / 1000) * 1000,
+      max: Math.ceil(Math.max(...mileages) / 1000) * 1000
+    };
+  }, [allCars]);
+
+  // Читаем фильтры из URL или используем значения по умолчанию
+  const searchTerm = searchParams.get('search') || '';
+  const makeFilter = searchParams.get('make') || '';
+  const modelFilter = searchParams.get('model') || '';
+  const minPrice = parseInt(searchParams.get('minPrice') || priceRange.min);
+  const maxPrice = parseInt(searchParams.get('maxPrice') || priceRange.max);
+  const minMileage = parseInt(searchParams.get('minMileage') || mileageRange.min);
+  const maxMileage = parseInt(searchParams.get('maxMileage') || mileageRange.max);
+
+  // Функция для обновления URL параметров
+  const updateFilter = (key, value) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (value) {
+      newParams.set(key, value);
+    } else {
+      newParams.delete(key);
+    }
+    setSearchParams(newParams);
+  };
 
   const handleBookTestDrive = (car) => {
     setSelectedCar(car);
@@ -29,16 +68,13 @@ const CarsPage = () => {
     const matchesMake = makeFilter === '' || car.make === makeFilter;
     const matchesModel = modelFilter === '' || car.model === modelFilter;
 
-    const matchesPrice = priceFilter === '' || (() => {
-      switch (priceFilter) {
-        case 'under-50000': return car.price < 50000;
-        case '50000-80000': return car.price >= 50000 && car.price <= 80000;
-        case 'over-80000': return car.price > 80000;
-        default: return true;
-      }
-    })();
+    // Фильтруем по диапазону цен
+    const matchesPrice = car.price >= minPrice && car.price <= maxPrice;
 
-    return matchesSearch && matchesMake && matchesModel && matchesPrice;
+    // Фильтруем по диапазону пробега
+    const matchesMileage = car.mileage >= minMileage && car.mileage <= maxMileage;
+
+    return matchesSearch && matchesMake && matchesModel && matchesPrice && matchesMileage;
   });
 
   const uniqueMakes = [...new Set(allCars.map(car => car.make))].sort();
@@ -49,10 +85,7 @@ const CarsPage = () => {
     : [...new Set(allCars.filter(car => car.make === makeFilter).map(car => car.model))].sort();
 
   const clearFilters = () => {
-    setSearchTerm('');
-    setMakeFilter('');
-    setModelFilter('');
-    setPriceFilter('');
+    setSearchParams({});
   };
 
   return (
@@ -70,7 +103,7 @@ const CarsPage = () => {
 
         {/* Search and Filters */}
         <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {/* Search */}
             <div className="lg:col-span-2">
               <div className="relative">
@@ -79,7 +112,7 @@ const CarsPage = () => {
                   id="car-search-input"
                   placeholder="Search by make or model..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => updateFilter('search', e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -90,9 +123,11 @@ const CarsPage = () => {
               id="car-make-filter"
               value={makeFilter}
               onChange={(e) => {
-                setMakeFilter(e.target.value);
+                updateFilter('make', e.target.value);
                 // При смене марки сбрасываем фильтр по модели
-                setModelFilter('');
+                if (e.target.value !== makeFilter) {
+                  updateFilter('model', '');
+                }
               }}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -106,7 +141,7 @@ const CarsPage = () => {
             <select
               id="car-model-filter"
               value={modelFilter}
-              onChange={(e) => setModelFilter(e.target.value)}
+              onChange={(e) => updateFilter('model', e.target.value)}
               disabled={availableModels.length === 0}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
@@ -115,21 +150,47 @@ const CarsPage = () => {
                 <option key={model} value={model}>{model}</option>
               ))}
             </select>
+          </div>
 
-            {/* Price Filter */}
-            <select
-              id="car-price-filter"
-              value={priceFilter}
-              onChange={(e) => setPriceFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Any Price</option>
-              <option value="under-50000">Under €50,000</option>
-              <option value="50000-80000">€50,000 - €80,000</option>
-              <option value="over-80000">Over €80,000</option>
-            </select>
+          {/* Price and Mileage Range Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            {/* Price Range */}
+            <RangeSlider
+              min={priceRange.min}
+              max={priceRange.max}
+              step={1000}
+              minValue={minPrice}
+              maxValue={maxPrice}
+              onChange={(min, max) => {
+                const newParams = new URLSearchParams(searchParams);
+                newParams.set('minPrice', min);
+                newParams.set('maxPrice', max);
+                setSearchParams(newParams);
+              }}
+              formatValue={(value) => `€${value.toLocaleString()}`}
+              label="Price"
+            />
 
-            {/* Clear Filters */}
+            {/* Mileage Range */}
+            <RangeSlider
+              min={mileageRange.min}
+              max={mileageRange.max}
+              step={1000}
+              minValue={minMileage}
+              maxValue={maxMileage}
+              onChange={(min, max) => {
+                const newParams = new URLSearchParams(searchParams);
+                newParams.set('minMileage', min);
+                newParams.set('maxMileage', max);
+                setSearchParams(newParams);
+              }}
+              formatValue={(value) => `${value.toLocaleString()} km`}
+              label="Mileage"
+            />
+          </div>
+
+          {/* Clear Filters Button */}
+          <div className="flex justify-end">
             <Button
               id="car-clear-filters-btn"
               variant="outline"
