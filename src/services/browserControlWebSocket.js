@@ -6,6 +6,8 @@
  * единый sessionId с TTL 24 часа для всего приложения.
  */
 
+import { commandExecutor } from './commandExecutor.js';
+
 class BrowserControlWebSocket {
   constructor() {
     this.ws = null;
@@ -21,7 +23,7 @@ class BrowserControlWebSocket {
     this.STORAGE_KEY_SERVER_URL = 'browserControl_serverUrl';
 
     // Конфигурация приложения (routes и metadata)
-    // Команды генерируются динамически в commandGenerator.js
+    // Параметризованные команды генерируются динамически в commandGenerator.js
     this.appConfig = {
       routes: [],
       metadata: {}
@@ -111,7 +113,7 @@ class BrowserControlWebSocket {
   handleMessage(data) {
     console.log('Received message from server:', data);
 
-    const { type, command, params } = data;
+    const { type, command, params, payload } = data;
 
     // Вызываем зарегистрированные обработчики для данного типа
     if (this.messageHandlers.has(type)) {
@@ -134,7 +136,8 @@ class BrowserControlWebSocket {
         this.handleScroll(params);
         break;
       case 'execute':
-        this.handleExecute(params);
+        // Для execute команд используем payload, который содержит { commandId, params }
+        this.handleExecute(payload || params);
         break;
       default:
         console.log('Unknown command:', command);
@@ -245,258 +248,44 @@ class BrowserControlWebSocket {
   }
 
   /**
-   * Выполнение высокоуровневой команды
-   * Обрабатывает команды с простой структурой {id, description}
-   * @param {Object} params - Параметры команды
-   * @param {string} params.id - ID команды для выполнения
+   * Выполнение параметризованной команды
+   * Делегирует выполнение в commandExecutor
+   * @param {Object} payload - Параметры команды
+   * @param {string} payload.commandId - ID команды для выполнения
+   * @param {Object} payload.params - Параметры команды (опционально)
    */
-  handleExecute({ id }) {
-    if (!id) {
-      console.error('[BrowserControl] Execute: command id is required');
-      this.sendAck('execute', false, 'Command id is required');
+  handleExecute({ commandId, params }) {
+    if (!commandId) {
+      console.error('[BrowserControl] Execute: commandId is required');
+      this.sendAck('execute', false, 'commandId is required');
       return;
     }
 
-    console.log(`[BrowserControl] Executing command: ${id}`);
+    console.log(`[BrowserControl] Executing parameterized command: ${commandId}`, params || {});
 
     try {
-      // ===== НАВИГАЦИЯ =====
-      if (id === 'go_home') {
-        window.location.hash = '#/';
-        this.sendAck('execute', true, null, { id, action: 'navigated to home' });
-        return;
+      // Выполняем команду через централизованный executor
+      const result = commandExecutor.execute(commandId, params);
+
+      if (result.success) {
+        this.sendAck('execute', true, null, {
+          commandId,
+          params: params || {},
+          action: result.action,
+          warning: result.warning
+        });
+      } else {
+        this.sendAck('execute', false, result.error, {
+          commandId,
+          params: params || {}
+        });
       }
-
-      if (id === 'go_cars') {
-        window.location.hash = '#/cars';
-        this.sendAck('execute', true, null, { id, action: 'navigated to cars page' });
-        return;
-      }
-
-      if (id === 'go_about') {
-        window.location.hash = '#/about';
-        this.sendAck('execute', true, null, { id, action: 'navigated to about page' });
-        return;
-      }
-
-      if (id === 'go_contact') {
-        window.location.hash = '#/contact';
-        this.sendAck('execute', true, null, { id, action: 'navigated to contact page' });
-        return;
-      }
-
-      if (id === 'go_back_cars') {
-        window.location.hash = '#/cars';
-        this.sendAck('execute', true, null, { id, action: 'navigated back to cars' });
-        return;
-      }
-
-      // ===== ПРОСМОТР АВТОМОБИЛЕЙ =====
-      if (id.startsWith('view_car_')) {
-        const carId = id.replace('view_car_', '');
-        window.location.hash = `#/car/${carId}`;
-        this.sendAck('execute', true, null, { id, action: `viewing car ${carId}` });
-        return;
-      }
-
-      // ===== ФИЛЬТРЫ ПО МАРКАМ =====
-      if (id.startsWith('filter_make_')) {
-        const makeSelector = document.querySelector('#car-make-filter');
-        if (!makeSelector) {
-          this.sendAck('execute', false, 'Make filter not found (not on /cars page?)');
-          return;
-        }
-
-        if (id === 'filter_make_all') {
-          makeSelector.value = '';
-        } else {
-          // Извлекаем название марки из id (filter_make_bmw -> BMW)
-          const makeId = id.replace('filter_make_', '');
-          const makeName = makeId.split('_').map(word =>
-            word.charAt(0).toUpperCase() + word.slice(1)
-          ).join(' ');
-
-          // Ищем соответствующую опцию в select
-          const option = Array.from(makeSelector.options).find(
-            opt => opt.value.toLowerCase() === makeName.toLowerCase()
-          );
-
-          if (option) {
-            makeSelector.value = option.value;
-          } else {
-            makeSelector.value = makeName;
-          }
-        }
-
-        makeSelector.dispatchEvent(new Event('change', { bubbles: true }));
-        this.sendAck('execute', true, null, { id, action: 'applied make filter' });
-        return;
-      }
-
-      // ===== ФИЛЬТРЫ ПО МОДЕЛЯМ =====
-      if (id.startsWith('filter_model_')) {
-        const modelSelector = document.querySelector('#car-model-filter');
-        if (!modelSelector) {
-          this.sendAck('execute', false, 'Model filter not found (not on /cars page?)');
-          return;
-        }
-
-        if (id === 'filter_model_all') {
-          modelSelector.value = '';
-        } else {
-          // Извлекаем название модели из id (filter_model_x5 -> X5, filter_model_range_rover_sport -> Range Rover Sport)
-          const modelId = id.replace('filter_model_', '');
-          const modelName = modelId.split('_').map(word =>
-            word.charAt(0).toUpperCase() + word.slice(1)
-          ).join(' ');
-
-          // Ищем соответствующую опцию в select
-          const option = Array.from(modelSelector.options).find(
-            opt => opt.value.toLowerCase() === modelName.toLowerCase()
-          );
-
-          if (option) {
-            modelSelector.value = option.value;
-          } else {
-            modelSelector.value = modelName;
-          }
-        }
-
-        modelSelector.dispatchEvent(new Event('change', { bubbles: true }));
-        this.sendAck('execute', true, null, { id, action: 'applied model filter' });
-        return;
-      }
-
-      // ===== ФИЛЬТРЫ ПО ЦЕНЕ =====
-      if (id.startsWith('filter_price_')) {
-        const priceSelector = document.querySelector('#car-price-filter');
-        if (!priceSelector) {
-          this.sendAck('execute', false, 'Price filter not found (not on /cars page?)');
-          return;
-        }
-
-        const priceMap = {
-          'filter_price_low': 'under-50000',
-          'filter_price_mid': '50000-80000',
-          'filter_price_high': 'over-80000',
-          'filter_price_all': ''
-        };
-
-        const priceValue = priceMap[id];
-        if (priceValue !== undefined) {
-          priceSelector.value = priceValue;
-          priceSelector.dispatchEvent(new Event('change', { bubbles: true }));
-          this.sendAck('execute', true, null, { id, action: 'applied price filter' });
-        } else {
-          this.sendAck('execute', false, `Unknown price filter: ${id}`);
-        }
-        return;
-      }
-
-      // ===== ПОИСК =====
-      if (id.startsWith('search_')) {
-        const searchInput = document.querySelector('#car-search-input');
-        if (!searchInput) {
-          this.sendAck('execute', false, 'Search input not found (not on /cars page?)');
-          return;
-        }
-
-        if (id === 'search_clear') {
-          searchInput.value = '';
-        } else {
-          // Извлекаем поисковый запрос из id (search_bmw -> BMW)
-          const searchTerm = id.replace('search_', '').replace(/_/g, ' ');
-          searchInput.value = searchTerm.charAt(0).toUpperCase() + searchTerm.slice(1);
-        }
-
-        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-        searchInput.dispatchEvent(new Event('change', { bubbles: true }));
-        this.sendAck('execute', true, null, { id, action: 'performed search' });
-        return;
-      }
-
-      // ===== ДЕЙСТВИЯ =====
-      if (id === 'clear_all_filters') {
-        const clearBtn = document.querySelector('#car-clear-filters-btn');
-        if (clearBtn) {
-          clearBtn.click();
-          this.sendAck('execute', true, null, { id, action: 'cleared all filters' });
-        } else {
-          this.sendAck('execute', false, 'Clear filters button not found');
-        }
-        return;
-      }
-
-      if (id === 'scroll_top') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        this.sendAck('execute', true, null, { id, action: 'scrolled to top' });
-        return;
-      }
-
-      if (id === 'scroll_bottom') {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        this.sendAck('execute', true, null, { id, action: 'scrolled to bottom' });
-        return;
-      }
-
-      // ===== КОМБИНИРОВАННЫЕ КОМАНДЫ =====
-      // Формат: show_cheap_bmw, show_mid_audi, show_luxury_ferrari
-      if (id.startsWith('show_')) {
-        const parts = id.split('_');
-        if (parts.length >= 3) {
-          const priceCategory = parts[1]; // cheap, mid, luxury
-          const make = parts.slice(2).join(' '); // bmw, mercedes_benz, land_rover, etc.
-
-          // Применяем фильтр по марке
-          const makeSelector = document.querySelector('#car-make-filter');
-          const priceSelector = document.querySelector('#car-price-filter');
-
-          if (!makeSelector || !priceSelector) {
-            this.sendAck('execute', false, 'Filters not found (not on /cars page?)');
-            return;
-          }
-
-          // Устанавливаем марку
-          const makeName = make.split('_').map(word =>
-            word.charAt(0).toUpperCase() + word.slice(1)
-          ).join(' ');
-
-          const option = Array.from(makeSelector.options).find(
-            opt => opt.value.toLowerCase() === makeName.toLowerCase()
-          );
-
-          if (option) {
-            makeSelector.value = option.value;
-          } else {
-            makeSelector.value = makeName;
-          }
-          makeSelector.dispatchEvent(new Event('change', { bubbles: true }));
-
-          // Устанавливаем цену (обновленные диапазоны)
-          const priceMap = {
-            'cheap': 'under-50000',
-            'mid': '50000-80000',
-            'luxury': 'over-80000'
-          };
-
-          const priceValue = priceMap[priceCategory];
-          if (priceValue) {
-            priceSelector.value = priceValue;
-            priceSelector.dispatchEvent(new Event('change', { bubbles: true }));
-          }
-
-          this.sendAck('execute', true, null, { id, action: 'applied combined filters' });
-          return;
-        }
-      }
-
-      // Если команда не распознана
-      console.warn(`[BrowserControl] Unknown command id: ${id}`);
-      this.sendAck('execute', false, `Unknown command: ${id}`);
-
     } catch (error) {
       console.error('[BrowserControl] Execute error:', error);
-      this.sendAck('execute', false, error.message);
+      this.sendAck('execute', false, error.message, {
+        commandId,
+        params: params || {}
+      });
     }
   }
 
@@ -864,7 +653,7 @@ class BrowserControlWebSocket {
       routes: this.appConfig.routes,
       currentPage: this.getCurrentPageInfo(),
       interactiveElements: this.collectPageActions(),
-      commands: this.commands || [], // Высокоуровневые команды (генерируются динамически)
+      commands: this.commands || [], // Параметризованные команды {id, params} (генерируются динамически)
       metadata: this.appConfig.metadata
     };
 
@@ -894,12 +683,12 @@ class BrowserControlWebSocket {
   }
 
   /**
-   * Обновление списка высокоуровневых команд
-   * @param {Array} commands - Массив команд с полями {id, description}
+   * Обновление списка параметризованных команд
+   * @param {Array} commands - Массив команд с полями {id, params}
    */
   updateCommands(commands) {
     this.commands = commands;
-    console.log(`[BrowserControl] Commands updated: ${commands.length} commands available`);
+    console.log(`[BrowserControl] Commands updated: ${commands.length} parameterized commands available`);
 
     // Если подключены к серверу, отправляем обновленную карту действий
     if (this.isConnected()) {
@@ -920,40 +709,45 @@ class BrowserControlWebSocket {
    */
   listCommands() {
     const commands = this.getCommands();
-    console.log(`\n=== Available Commands (${commands.length}) ===\n`);
+    console.log(`\n=== Available Parameterized Commands (${commands.length}) ===\n`);
     commands.forEach((cmd, index) => {
       console.log(`${index + 1}. ${cmd.id}`);
-      console.log(`   ${cmd.description}\n`);
+      if (cmd.params && Object.keys(cmd.params).length > 0) {
+        console.log(`   Params: ${JSON.stringify(cmd.params, null, 2)}\n`);
+      } else {
+        console.log(`   (No parameters)\n`);
+      }
     });
-    console.log('Use window.browserControl.execute("command_id") to execute a command\n');
+    console.log('Use window.browserControl.execute("command_id", params) to execute a command\n');
   }
 
   /**
    * Выполнить команду по ID (для тестирования из консоли)
    * @param {string} commandId - ID команды
-   * @returns {boolean} true если команда найдена и отправлена
+   * @param {Object} params - Параметры команды (опционально)
+   * @returns {boolean} true если команда найдена и выполнена
    */
-  executeCommand(commandId) {
+  executeCommand(commandId, params) {
     const commands = this.getCommands();
     const command = commands.find(cmd => cmd.id === commandId);
 
     if (!command) {
       console.error(`[BrowserControl] Command not found: ${commandId}`);
       console.log('Available commands:');
-      commands.forEach(cmd => console.log(`  - ${cmd.id}: ${cmd.description}`));
+      commands.forEach(cmd => console.log(`  - ${cmd.id}`));
       return false;
     }
 
-    console.log(`[BrowserControl] Executing: ${command.description}`);
+    console.log(`[BrowserControl] Executing command: ${commandId}`, params || {});
 
     // Выполняем команду локально
-    this.handleExecute({ id: commandId });
+    this.handleExecute({ commandId, params: params || {} });
 
     return true;
   }
 
   /**
-   * Поиск команд по описанию или ID
+   * Поиск команд по ID
    * @param {string} query - Поисковый запрос
    * @returns {Array} Найденные команды
    */
@@ -962,14 +756,17 @@ class BrowserControlWebSocket {
     const lowerQuery = query.toLowerCase();
 
     const results = commands.filter(cmd =>
-      cmd.id.toLowerCase().includes(lowerQuery) ||
-      cmd.description.toLowerCase().includes(lowerQuery)
+      cmd.id.toLowerCase().includes(lowerQuery)
     );
 
     console.log(`\n=== Search Results for "${query}" (${results.length}) ===\n`);
     results.forEach((cmd, index) => {
       console.log(`${index + 1}. ${cmd.id}`);
-      console.log(`   ${cmd.description}\n`);
+      if (cmd.params && Object.keys(cmd.params).length > 0) {
+        console.log(`   Params: ${JSON.stringify(cmd.params, null, 2)}\n`);
+      } else {
+        console.log(`   (No parameters)\n`);
+      }
     });
 
     return results;
@@ -983,26 +780,28 @@ export const browserControlWS = new BrowserControlWebSocket();
 if (typeof window !== 'undefined') {
   window.browserControl = {
     /**
-     * Выполнить команду по ID
-     * @example window.browserControl.execute('view_car_1')
+     * Выполнить параметризованную команду по ID
+     * @example window.browserControl.execute('view_cars', { carIds: [1, 2] })
+     * @example window.browserControl.execute('set_filter', { filterType: 'make', values: ['BMW'] })
+     * @example window.browserControl.execute('go_home')
      */
-    execute: (commandId) => browserControlWS.executeCommand(commandId),
+    execute: (commandId, params) => browserControlWS.executeCommand(commandId, params),
 
     /**
-     * Получить список всех доступных команд
+     * Получить список всех доступных параметризованных команд
      * @example window.browserControl.getCommands()
      */
     getCommands: () => browserControlWS.getCommands(),
 
     /**
-     * Показать список команд в консоли
+     * Показать список параметризованных команд в консоли
      * @example window.browserControl.list()
      */
     list: () => browserControlWS.listCommands(),
 
     /**
-     * Поиск команд по описанию или ID
-     * @example window.browserControl.search('bmw')
+     * Поиск команд по ID
+     * @example window.browserControl.search('filter')
      */
     search: (query) => browserControlWS.searchCommands(query),
 
@@ -1033,17 +832,20 @@ if (typeof window !== 'undefined') {
     help: () => {
       console.log('\n=== Browser Control Help ===\n');
       console.log('Available methods:');
-      console.log('  window.browserControl.list()              - Show all available commands');
-      console.log('  window.browserControl.search("query")     - Search commands by text');
-      console.log('  window.browserControl.execute("cmd_id")   - Execute a command');
-      console.log('  window.browserControl.getCommands()       - Get commands array');
-      console.log('  window.browserControl.status()            - Show connection status');
-      console.log('  window.browserControl.debugVoiceSession() - Start debug session without ElevenLabs');
-      console.log('  window.browserControl.help()              - Show this help\n');
+      console.log('  window.browserControl.list()                         - Show all available parameterized commands');
+      console.log('  window.browserControl.search("query")                - Search commands by ID');
+      console.log('  window.browserControl.execute("cmd_id", params)      - Execute a parameterized command');
+      console.log('  window.browserControl.getCommands()                  - Get commands array');
+      console.log('  window.browserControl.status()                       - Show connection status');
+      console.log('  window.browserControl.debugVoiceSession()            - Start debug session without ElevenLabs');
+      console.log('  window.browserControl.help()                         - Show this help\n');
       console.log('Examples:');
       console.log('  window.browserControl.list()');
-      console.log('  window.browserControl.search("bmw")');
-      console.log('  window.browserControl.execute("view_car_1")');
+      console.log('  window.browserControl.search("filter")');
+      console.log('  window.browserControl.execute("go_home")');
+      console.log('  window.browserControl.execute("set_filter", { filterType: "make", values: ["BMW"] })');
+      console.log('  window.browserControl.execute("view_cars", { carIds: [1, 2, 3] })');
+      console.log('  window.browserControl.execute("set_filters", { filters: { make: ["BMW"], price: { max: 50000 } } })');
       console.log('  window.browserControl.debugVoiceSession()');
       console.log('');
     },
