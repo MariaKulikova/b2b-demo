@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Select } from './ui/select';
 import { Checkbox } from './ui/checkbox';
 
 const TestDriveModal = ({ isOpen, onClose, selectedCar, cars }) => {
@@ -116,19 +116,17 @@ const TestDriveModal = ({ isOpen, onClose, selectedCar, cars }) => {
           <div>
             <Label htmlFor="car-select">Select a Car</Label>
             <Select
-              value={formData.selectedCarId.toString()}
-              onValueChange={(value) => handleInputChange('selectedCarId', parseInt(value))}
+              id="car-select"
+              value={formData.selectedCarId}
+              onChange={(e) => handleInputChange('selectedCarId', parseInt(e.target.value))}
+              className="mt-1"
             >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select a car" />
-              </SelectTrigger>
-              <SelectContent>
-                {cars.map((car) => (
-                  <SelectItem key={car.id} value={car.id.toString()}>
-                    {car.year} {car.make} {car.model} - €{car.price.toLocaleString()}
-                  </SelectItem>
-                ))}
-              </SelectContent>
+              <option value="">Select a car</option>
+              {cars.map((car) => (
+                <option key={car.id} value={car.id}>
+                  {car.year} {car.make} {car.model} - €{car.price.toLocaleString()}
+                </option>
+              ))}
             </Select>
           </div>
 

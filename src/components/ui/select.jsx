@@ -1,42 +1,14 @@
 import React from 'react';
 
-const Select = ({ children, value, onValueChange, ...props }) => {
+// Native HTML select component with consistent styling
+const Select = ({ className = '', children, ...props }) => {
+  const classes = `h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 pr-10 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors appearance-none bg-[url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")] bg-[position:right_0.5rem_center] bg-no-repeat bg-[length:1.5em_1.5em] ${className}`;
+
   return (
-    <div className="relative">
+    <select className={classes} {...props}>
       {children}
-    </div>
+    </select>
   );
 };
 
-const SelectTrigger = ({ className = '', children, ...props }) => (
-  <div
-    className={`flex h-10 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
-    {...props}
-  >
-    {children}
-  </div>
-);
-
-const SelectValue = ({ placeholder, ...props }) => (
-  <span className="text-gray-400" {...props}>{placeholder}</span>
-);
-
-const SelectContent = ({ children, ...props }) => (
-  <div
-    className="relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-white text-gray-950 shadow-md"
-    {...props}
-  >
-    {children}
-  </div>
-);
-
-const SelectItem = ({ children, value, ...props }) => (
-  <div
-    className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-gray-100 focus:bg-gray-100"
-    {...props}
-  >
-    {children}
-  </div>
-);
-
-export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue };
+export { Select };

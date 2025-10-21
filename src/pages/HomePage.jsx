@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Star, Shield, Award, Loader2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, Star, Shield, Award, Loader2, Search } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Select } from '../components/ui/select';
 import CarCard from '../components/CarCard';
 import TestDriveModal from '../components/TestDriveModal';
 import { useCars } from '../context/CarsContext';
@@ -9,10 +11,36 @@ import { useCars } from '../context/CarsContext';
 const HomePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [makeFilter, setMakeFilter] = useState('');
+  const [modelFilter, setModelFilter] = useState('');
+
+  const navigate = useNavigate();
   const { getHotOffers, getAllCars, loading, error } = useCars();
 
   const hotOffers = getHotOffers();
   const allCars = getAllCars();
+
+  const uniqueMakes = useMemo(() =>
+    [...new Set(allCars.map(car => car.make))].sort(),
+    [allCars]
+  );
+
+  const availableModels = useMemo(() =>
+    makeFilter === ''
+      ? [...new Set(allCars.map(car => car.model))].sort()
+      : [...new Set(allCars.filter(car => car.make === makeFilter).map(car => car.model))].sort(),
+    [allCars, makeFilter]
+  );
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (searchTerm) params.set('search', searchTerm);
+    if (makeFilter) params.set('make', makeFilter);
+    if (modelFilter) params.set('model', modelFilter);
+    navigate(`/cars?${params.toString()}`);
+  };
 
   const handleBookTestDrive = (car) => {
     setSelectedCar(car);
@@ -22,24 +50,75 @@ const HomePage = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative text-white rounded-2xl overflow-hidden">
-            <div className="absolute inset-0 bg-cover bg-left" style={{ backgroundImage: 'url(/assets/Light.jpg)', transform: 'scaleX(-1)' }}></div>
-            <div className="relative z-10 py-32 px-8 sm:px-12 lg:px-16 text-left">
-              <h1 className="text-4xl md:text-6xl font-bold mb-3">
-                FIND YOUR DREAM CAR
-              </h1>
-              <p className="text-xl md:text-2xl mb-12 text-gray-200">
-                Browse our range of quality vehicles in Amsterdam
-              </p>
-              <Link to="/cars">
-                <Button size="lg" variant="secondary">
-                  Browse Inventory
-                  <ArrowRight className="ml-2 h-5 w-5" />
+      <section className="relative text-white overflow-hidden">
+        <div className="absolute inset-0 bg-cover bg-left" style={{ backgroundImage: 'url(/assets/Body.jpg)', transform: 'scaleX(-1)' }}></div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-32 text-left">
+            <h1 className="text-4xl md:text-6xl font-bold mb-3">
+              FIND YOUR DREAM CAR
+            </h1>
+            <p className="text-xl md:text-2xl mb-12 text-gray-200">
+              Browse our range of quality vehicles in Amsterdam
+            </p>
+
+            {/* Search Filters */}
+            <form onSubmit={handleSearch} className="bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Search Input */}
+                <div className="md:col-span-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                {/* Make Filter */}
+                <Select
+                  value={makeFilter}
+                  onChange={(e) => {
+                    setMakeFilter(e.target.value);
+                    if (e.target.value !== makeFilter) {
+                      setModelFilter('');
+                    }
+                  }}
+                >
+                  <option value="">Any Make</option>
+                  {uniqueMakes.map(make => (
+                    <option key={make} value={make}>{make}</option>
+                  ))}
+                </Select>
+
+                {/* Model Filter */}
+                <Select
+                  value={modelFilter}
+                  onChange={(e) => setModelFilter(e.target.value)}
+                  disabled={availableModels.length === 0}
+                >
+                  <option value="">Any Model</option>
+                  {availableModels.map(model => (
+                    <option key={model} value={model}>{model}</option>
+                  ))}
+                </Select>
+
+                {/* Search Button */}
+                <Button type="submit" size="lg" className="w-full">
+                  <Search className="mr-2 h-5 w-5" />
+                  Search
                 </Button>
-              </Link>
-            </div>
+              </div>
+            </form>
+
+            <Link to="/cars">
+              <Button size="lg" variant="secondary">
+                Browse Inventory
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
