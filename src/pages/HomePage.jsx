@@ -22,21 +22,24 @@ const HomePage = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="hero-gradient text-white py-20">
+      <section className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Find Your Dream Car
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 text-blue-100">
-              Browse our range of quality vehicles in Amsterdam
-            </p>
-            <Link to="/cars">
-              <Button size="lg" variant="secondary" className="text-blue-600 hover:text-blue-700">
-                Browse Inventory
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
+          <div className="relative text-white rounded-2xl overflow-hidden">
+            <div className="absolute inset-0 bg-cover bg-left" style={{ backgroundImage: 'url(/assets/Light.jpg)', transform: 'scaleX(-1)' }}></div>
+            <div className="relative z-10 py-32 px-8 sm:px-12 lg:px-16 text-left">
+              <h1 className="text-4xl md:text-6xl font-bold mb-3">
+                FIND YOUR DREAM CAR
+              </h1>
+              <p className="text-xl md:text-2xl mb-12 text-gray-200">
+                Browse our range of quality vehicles in Amsterdam
+              </p>
+              <Link to="/cars">
+                <Button size="lg" variant="secondary">
+                  Browse Inventory
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -46,8 +49,8 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-blue-600" />
+              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-brand-dark" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Quality Guaranteed</h3>
               <p className="text-gray-600">
@@ -55,8 +58,8 @@ const HomePage = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-blue-600" />
+              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-8 w-8 text-brand-dark" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Trusted Service</h3>
               <p className="text-gray-600">
@@ -64,8 +67,8 @@ const HomePage = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8 text-blue-600" />
+              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="h-8 w-8 text-brand-dark" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Best Prices</h3>
               <p className="text-gray-600">
@@ -90,7 +93,7 @@ const HomePage = () => {
 
           {loading ? (
             <div className="flex justify-center items-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <Loader2 className="h-8 w-8 animate-spin text-brand-dark" />
               <span className="ml-3 text-gray-600">Loading cars...</span>
             </div>
           ) : error ? (
@@ -112,7 +115,7 @@ const HomePage = () => {
 
               <div className="text-center">
                 <Link to="/cars">
-                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                  <Button size="lg" className="bg-brand-dark hover:bg-red-900">
                     View All Cars
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>

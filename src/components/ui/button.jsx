@@ -11,8 +11,8 @@ const Button = ({
   const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
   
   const variants = {
-    default: 'bg-blue-600 text-white hover:bg-blue-700',
-    secondary: 'bg-white text-blue-600 hover:bg-gray-50',
+    default: 'bg-brand-dark text-white hover:bg-red-900',
+    secondary: 'bg-white text-brand-dark hover:bg-gray-50 hover:text-brand-dark',
     outline: 'border border-gray-300 bg-white hover:bg-gray-50'
   };
   
