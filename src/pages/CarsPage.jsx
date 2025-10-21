@@ -158,11 +158,17 @@ const CarsPage = () => {
               id="car-make-filter"
               value={makeFilter}
               onChange={(e) => {
-                updateFilter('make', e.target.value);
+                const newParams = new URLSearchParams(searchParams);
+                if (e.target.value) {
+                  newParams.set('make', e.target.value);
+                } else {
+                  newParams.delete('make');
+                }
                 // При смене марки сбрасываем фильтр по модели
                 if (e.target.value !== makeFilter) {
-                  updateFilter('model', '');
+                  newParams.delete('model');
                 }
+                setSearchParams(newParams);
               }}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
