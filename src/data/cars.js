@@ -22,6 +22,7 @@ export const cars = [
     fuelType: 'Petrol',
     transmission: 'Automatic',
     color: 'Silver',
+    bodyType: 'Sedan',
     isHotOffer: true
   },
   {
@@ -37,6 +38,7 @@ export const cars = [
     fuelType: 'Petrol',
     transmission: 'Automatic',
     color: 'Black',
+    bodyType: 'Sedan',
     isHotOffer: true
   },
   {
@@ -52,6 +54,7 @@ export const cars = [
     fuelType: 'Petrol',
     transmission: 'Automatic',
     color: 'White',
+    bodyType: 'Sedan',
     isHotOffer: true
   },
   {
@@ -67,6 +70,7 @@ export const cars = [
     fuelType: 'Petrol',
     transmission: 'Automatic',
     color: 'Gray',
+    bodyType: 'Wagon',
     isHotOffer: true
   },
   {
@@ -82,6 +86,7 @@ export const cars = [
     fuelType: 'Hybrid',
     transmission: 'CVT',
     color: 'Blueprint Blue',
+    bodyType: 'SUV',
     isHotOffer: true
   },
   {
@@ -97,6 +102,7 @@ export const cars = [
     fuelType: 'Hybrid',
     transmission: 'CVT',
     color: 'Silver',
+    bodyType: 'SUV',
     isHotOffer: true
   },
   {
@@ -112,6 +118,7 @@ export const cars = [
     fuelType: 'Petrol',
     transmission: 'CVT',
     color: 'White',
+    bodyType: 'Sedan',
     isHotOffer: false
   },
   {
@@ -127,6 +134,7 @@ export const cars = [
     fuelType: 'Petrol',
     transmission: 'CVT',
     color: 'Radiant Red',
+    bodyType: 'Sedan',
     isHotOffer: false
   }
 ];

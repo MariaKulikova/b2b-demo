@@ -48,7 +48,9 @@ export const fetchCarInventory = async () => {
       year: car.year || new Date().getFullYear(),
       fuelType: car.fuelType || 'N/A',
       transmission: car.transmission || 'N/A',
-      color: car.color || 'N/A'
+      color: car.color || 'N/A',
+      // Маппим bodyStyle из API в bodyType для приложения
+      bodyType: car.bodyStyle || 'N/A'
     }));
   } catch (error) {
     console.error('Error fetching car inventory:', error);

@@ -64,7 +64,7 @@ function extractUniqueValues(cars) {
   return {
     makes: [...new Set(cars.map(c => c.make).filter(Boolean))].sort(),
     models: [...new Set(cars.map(c => c.model).filter(Boolean))].sort(),
-    bodyTypes: [...new Set(cars.map(c => c.bodyStyle).filter(Boolean))].sort(),
+    bodyTypes: [...new Set(cars.map(c => c.bodyType).filter(Boolean))].sort(),
     transmissions: [...new Set(cars.map(c => c.transmission).filter(Boolean))].sort(),
     fuelTypes: [...new Set(cars.map(c => c.fuelType).filter(Boolean))].sort(),
     colors: [...new Set(cars.map(c => c.color).filter(Boolean))].sort(),
