@@ -7,6 +7,27 @@
  */
 
 /**
+ * Генерация CSV списка доступных автомобилей
+ * Формат: id,description,mileage,price
+ */
+export function generateAvailableCarsList(cars) {
+  if (!cars || cars.length === 0) {
+    return 'id,description,mileage,price\n';
+  }
+
+  const header = 'id,description,mileage,price';
+  const rows = cars.map(car => {
+    const id = car.id || '';
+    const description = `${car.year || ''} ${car.make || ''} ${car.model || ''}`.trim();
+    const mileage = car.mileage || 0;
+    const price = car.price || 0;
+    return `${id},"${description}",${mileage},${price}`;
+  });
+
+  return [header, ...rows].join('\n');
+}
+
+/**
  * Маршруты приложения
  */
 export const routes = [
@@ -61,7 +82,23 @@ export const metadata = {
 };
 
 /**
- * Конфигурация приложения для Browser Control
+ * Генерирует полную конфигурацию приложения с данными об автомобилях
+ * @param {Array} cars - Массив автомобилей из API
+ * @returns {Object} Полная конфигурация приложения
+ */
+export function generateAppConfig(cars = []) {
+  return {
+    routes,
+    metadata: {
+      ...metadata,
+      availableCarsList: generateAvailableCarsList(cars),
+      totalCars: cars.length
+    }
+  };
+}
+
+/**
+ * Базовая конфигурация приложения для Browser Control
  */
 export const appConfig = {
   routes,

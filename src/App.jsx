@@ -11,11 +11,22 @@ import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import BookTestDrivePage from './pages/BookTestDrivePage';
 import { browserControlWS } from './services/browserControlWebSocket';
-import appConfig from './config/browserControlConfig';
+import { generateAppConfig } from './config/browserControlConfig';
 import { useCommands } from './hooks/useCommands';
+import { useCars } from './context/CarsContext';
 import './App.css';
 
 function AppContent() {
+  const { getAllCars } = useCars();
+
+  // Обновляем app config с данными об автомобилях
+  useEffect(() => {
+    const cars = getAllCars();
+    const config = generateAppConfig(cars);
+    browserControlWS.setAppConfig(config);
+    console.log('[App] Browser control app config initialized with', config.metadata.totalCars, 'cars');
+  }, [getAllCars]);
+
   // Автоматически генерируем и обновляем высокоуровневые команды
   useCommands();
 
@@ -39,12 +50,6 @@ function AppContent() {
 }
 
 function App() {
-  // Инициализируем конфигурацию приложения для browser control при монтировании
-  useEffect(() => {
-    browserControlWS.setAppConfig(appConfig);
-    console.log('[App] Browser control app config initialized');
-  }, []);
-
   return (
     <Router>
       <CarsProvider>

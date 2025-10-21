@@ -111,9 +111,13 @@ class BrowserControlWebSocket {
    * @param {Object} data - Данные сообщения
    */
   handleMessage(data) {
-    console.log('Received message from server:', data);
+    console.log('[BrowserControl] Received message from server:', data);
 
     const { type, command, params, payload } = data;
+
+    if (command === 'execute') {
+      console.log('[BrowserControl] Execute command received - payload:', payload, 'params:', params);
+    }
 
     // Вызываем зарегистрированные обработчики для данного типа
     if (this.messageHandlers.has(type)) {
@@ -137,7 +141,8 @@ class BrowserControlWebSocket {
         break;
       case 'execute':
         // Для execute команд используем payload, который содержит { commandId, params }
-        this.handleExecute(payload || params);
+        const executePayload = payload || params || {};
+        this.handleExecute(executePayload);
         break;
       default:
         console.log('Unknown command:', command);
@@ -254,7 +259,9 @@ class BrowserControlWebSocket {
    * @param {string} payload.commandId - ID команды для выполнения
    * @param {Object} payload.params - Параметры команды (опционально)
    */
-  handleExecute({ commandId, params }) {
+  handleExecute({ commandId, params } = {}) {
+    console.log('[BrowserControl] handleExecute called with:', { commandId, params });
+
     if (!commandId) {
       console.error('[BrowserControl] Execute: commandId is required');
       this.sendAck('execute', false, 'commandId is required');
