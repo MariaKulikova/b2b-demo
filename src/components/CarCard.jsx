@@ -39,7 +39,7 @@ const CarCard = ({ car }) => {
           />
         )}
         {car.isHotOffer && (
-          <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-lg text-xs font-semibold">
+          <div className="absolute top-3 left-3 bg-brand-orange text-white px-3 py-2 rounded-xl text-xs font-semibold">
             HOT OFFER
           </div>
         )}
@@ -84,7 +84,7 @@ const CarCard = ({ car }) => {
 
         <Link
           to={`/car/${car.id}`}
-          className="block mt-3 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+          className="block mt-3 text-base text-brand-dark hover:text-brand-dark/80 transition-colors font-medium"
         >
           View Details →
         </Link>
