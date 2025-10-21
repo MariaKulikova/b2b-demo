@@ -80,6 +80,25 @@ const CarsPage = () => {
     setIsModalOpen(true);
   };
 
+  // Функция для получения машин с применением всех фильтров кроме указанного
+  const getFilteredCarsExcept = (exceptFilter) => {
+    return allCars.filter(car => {
+      const matchesSearch = exceptFilter === 'search' ? true : (searchTerm === '' ||
+        `${car.make} ${car.model}`.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      const matchesMake = exceptFilter === 'make' ? true : (makeFilter.length === 0 || makeFilter.includes(car.make));
+      const matchesModel = exceptFilter === 'model' ? true : (modelFilter === '' || car.model === modelFilter);
+      const matchesBodyType = exceptFilter === 'bodyType' ? true : (bodyTypeFilter.length === 0 || bodyTypeFilter.includes(car.bodyType));
+      const matchesFuelType = exceptFilter === 'fuelType' ? true : (fuelTypeFilter.length === 0 || fuelTypeFilter.includes(car.fuelType));
+      const matchesTransmission = exceptFilter === 'transmission' ? true : (transmissionFilter.length === 0 || transmissionFilter.includes(car.transmission));
+      const matchesPrice = exceptFilter === 'price' ? true : (car.price >= minPrice && car.price <= maxPrice);
+      const matchesMileage = exceptFilter === 'mileage' ? true : (car.mileage >= minMileage && car.mileage <= maxMileage);
+      const matchesYear = exceptFilter === 'year' ? true : (car.year >= minYear && car.year <= maxYear);
+
+      return matchesSearch && matchesMake && matchesModel && matchesBodyType && matchesFuelType && matchesTransmission && matchesPrice && matchesMileage && matchesYear;
+    });
+  };
+
   // Фильтруем автомобили
   const filteredCars = allCars.filter(car => {
     const matchesSearch = searchTerm === '' ||
@@ -124,15 +143,14 @@ const CarsPage = () => {
     }
   });
 
-  const uniqueMakes = [...new Set(allCars.map(car => car.make))].sort();
-  const uniqueBodyTypes = [...new Set(allCars.map(car => car.bodyType))].sort();
-  const uniqueFuelTypes = [...new Set(allCars.map(car => car.fuelType))].sort();
-  const uniqueTransmissions = [...new Set(allCars.map(car => car.transmission))].sort();
+  // Вычисляем доступные опции для каждого фильтра с учетом других фильтров
+  const uniqueMakes = [...new Set(getFilteredCarsExcept('make').map(car => car.make))].sort();
+  const uniqueBodyTypes = [...new Set(getFilteredCarsExcept('bodyType').map(car => car.bodyType))].sort();
+  const uniqueFuelTypes = [...new Set(getFilteredCarsExcept('fuelType').map(car => car.fuelType))].sort();
+  const uniqueTransmissions = [...new Set(getFilteredCarsExcept('transmission').map(car => car.transmission))].sort();
 
-  // Получаем модели для выбранной марки (или все, если марка не выбрана)
-  const availableModels = makeFilter === ''
-    ? [...new Set(allCars.map(car => car.model))].sort()
-    : [...new Set(allCars.filter(car => car.make === makeFilter).map(car => car.model))].sort();
+  // Получаем модели с учетом всех фильтров кроме model
+  const availableModels = [...new Set(getFilteredCarsExcept('model').map(car => car.model))].sort();
 
   const clearFilters = () => {
     setSearchParams({});
