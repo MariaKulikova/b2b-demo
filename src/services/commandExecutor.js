@@ -105,9 +105,9 @@ export class CommandExecutor {
     }
 
     // Range фильтры которые работают напрямую через URL (без DOM элементов)
-    const urlRangeFilters = ['price', 'mileage'];
+    const urlRangeFilters = ['price', 'mileage', 'year'];
 
-    // Для численных фильтров (range) - обрабатываем сразу если это price/mileage
+    // Для численных фильтров (range) - обрабатываем сразу если это price/mileage/year
     if ((min !== undefined || max !== undefined) && urlRangeFilters.includes(filterType)) {
       // Range фильтры работают напрямую с URL, не требуют DOM элемента
       console.log(`[CommandExecutor] Applying URL range filter for ${filterType}:`, { min, max });
@@ -128,7 +128,7 @@ export class CommandExecutor {
 
     // Для категориальных фильтров (select/multi-select)
     if (values) {
-      this.applyValuesFilter(element, values);
+      this.applyValuesFilter(element, values, filterType);
       return { success: true, action: `applied ${filterType} filter with values: ${values.join(', ')}` };
     }
 
@@ -156,7 +156,7 @@ export class CommandExecutor {
     const errors = [];
 
     // Range фильтры которые работают напрямую через URL (без DOM элементов)
-    const urlRangeFilters = ['price', 'mileage'];
+    const urlRangeFilters = ['price', 'mileage', 'year'];
 
     Object.entries(filters).forEach(([filterType, value]) => {
       console.log(`[CommandExecutor] Processing filter: ${filterType}`, value);
@@ -181,7 +181,7 @@ export class CommandExecutor {
 
           console.log(`[CommandExecutor] Found element for ${filterType}:`, element);
           console.log(`[CommandExecutor] Applying values filter for ${filterType}:`, value);
-          this.applyValuesFilter(element, value);
+          this.applyValuesFilter(element, value, filterType);
           appliedFilters.push(`${filterType}: ${value.join(', ')}`);
         } else if (typeof value === 'object' && (value.min !== undefined || value.max !== undefined)) {
           // Численный range фильтр
@@ -236,10 +236,34 @@ export class CommandExecutor {
 
   /**
    * Применение фильтра с массивом значений (для select)
+   * Теперь поддерживает множественные значения через URL параметры
    */
-  applyValuesFilter(element, values) {
+  applyValuesFilter(element, values, filterType) {
+    console.log(`[CommandExecutor] applyValuesFilter: filterType=${filterType}, values=`, values);
+
+    // Для категориальных фильтров (make, bodyType, fuelType, transmission)
+    // устанавливаем множественные значения через URL параметры
+    const categoricalFilters = ['make', 'bodyType', 'fuelType', 'transmission'];
+
+    if (categoricalFilters.includes(filterType) && values.length > 0) {
+      // Получаем текущие параметры из URL
+      const hash = window.location.hash;
+      const [path, queryString] = hash.split('?');
+      const params = new URLSearchParams(queryString || '');
+
+      // Устанавливаем значения через запятую (например: "BMW,Audi")
+      params.set(filterType, values.join(','));
+
+      // Обновляем URL
+      const newHash = params.toString() ? `${path}?${params.toString()}` : path;
+      console.log(`[CommandExecutor] Setting ${filterType} to URL: ${values.join(',')}`);
+      window.location.hash = newHash;
+      return;
+    }
+
+    // Для обычных select элементов (не категориальные фильтры)
     if (element.tagName.toLowerCase() === 'select') {
-      // Для одиночного select - берём первое значение
+      // Берём первое значение
       if (values.length > 0) {
         element.value = values[0];
         element.dispatchEvent(new Event('change', { bubbles: true }));
@@ -277,7 +301,8 @@ export class CommandExecutor {
     // Маппинг типов фильтров на параметры URL
     const paramMapping = {
       price: { min: 'minPrice', max: 'maxPrice' },
-      mileage: { min: 'minMileage', max: 'maxMileage' }
+      mileage: { min: 'minMileage', max: 'maxMileage' },
+      year: { min: 'minYear', max: 'maxYear' }
     };
 
     const mapping = paramMapping[filterType];

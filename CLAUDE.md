@@ -102,3 +102,103 @@ GitHub Actions автоматизация настроена для обеспе
 - **Обновления**: При каждом push в main branch
 - **Конфигурация**: HashRouter для совместимости со статическим хостингом
 - **CNAME**: Настроен на demo.shiftgears.ai
+
+## Browser Control & Voice Assistant
+
+This application integrates with ElevenLabs Voice AI and MCP (Model Context Protocol) for browser control.
+
+### Key Components
+- `src/services/browserControlWebSocket.js` - WebSocket connection to backend for browser control
+- `src/services/commandExecutor.js` - Centralized command execution logic
+- `src/services/commandGenerator.js` - Generates available commands based on current page/route
+- `src/components/VoiceAssistant.jsx` - Voice AI interface component
+- `src/hooks/useCommands.js` - React hook for command management
+
+### Available Commands
+Commands are dynamically generated based on the current route:
+- **Navigation**: `go_home`, `go_cars`, `go_about`, `go_contact`, `go_back_cars`
+- **Filters**: `set_filter` (single), `set_filters` (multiple), `clear_filters`
+- **Actions**: `view_cars`, `scroll_top`, `scroll_bottom`
+
+### Filter System
+- **Categorical filters** (make, bodyType, fuelType, transmission): Support multi-select via comma-separated URL params (e.g., `?make=Audi,Kia`)
+- **Range filters** (price, mileage): Use min/max URL params (e.g., `?minPrice=10000&maxPrice=50000`)
+
+### Debugging
+
+#### 1. Browser Control Commands
+Test commands directly in browser console:
+
+```javascript
+// Execute single filter
+window.browserControl.execute('set_filter', {
+  filterType: 'make',
+  values: ['Audi']
+});
+
+// Execute multiple filters
+window.browserControl.execute('set_filters', {
+  filters: {
+    make: ['Audi', 'Kia'],
+    fuelType: ['Electric', 'Hybrid'],
+    price: { min: 20000, max: 50000 }
+  }
+});
+
+// Clear filters
+window.browserControl.execute('clear_filters', {
+  filterTypes: ['all']
+});
+
+// View available commands
+window.browserControl.help();
+```
+
+#### 2. Playwright MCP Tools
+When debugging with Claude Code, use MCP Playwright tools:
+
+```javascript
+// Take a snapshot to see page state and available elements
+mcp__playwright__browser_snapshot()
+
+// Execute JavaScript to test functionality
+mcp__playwright__browser_evaluate({
+  function: "() => { return window.location.href; }"
+})
+
+// Check console logs
+mcp__playwright__browser_console_messages({ onlyErrors: false })
+
+// Navigate and test
+mcp__playwright__browser_navigate({ url: "http://localhost:5173/#/cars" })
+```
+
+#### 3. Common Debugging Scenarios
+
+**Problem**: Filters not applying after code changes
+**Solution**:
+1. Ensure dev server reloaded: Check `pnpm dev` output for HMR updates
+2. Hard refresh browser: Clear cache or use `window.location.reload()`
+3. Test command directly: Use `window.browserControl.execute()` in console
+4. Check console logs: Look for `[CommandExecutor]` messages
+
+**Problem**: Multi-select filter shows only one value
+**Solution**:
+1. Verify URL format: Should be `?make=Audi,Kia` (comma-separated)
+2. Check parsing logic: `searchParams.get('make').split(',')`
+3. Test in console: Execute filter and check URL updates
+
+**Problem**: WebSocket not connecting
+**Solution**:
+1. Check backend is running: `VITE_BROWSER_CONTROL_WS_URL` in `.env`
+2. Verify session ID: Check console for `[BrowserControl]` messages
+3. Test connection: `browserControlWS.isConnected()`
+
+#### 4. Logging Best Practices
+All browser control operations are logged with prefixes:
+- `[BrowserControl]` - WebSocket and registration events
+- `[CommandExecutor]` - Command execution and filter operations
+- `[CommandGenerator]` - Available commands generation
+- `[VoiceAssistant]` - Voice AI session lifecycle
+
+Filter console by these prefixes to debug specific subsystems.

@@ -4,6 +4,7 @@ import { Search, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { RangeSlider } from '../components/ui/range-slider';
+import { MultiSelect } from '../components/ui/multi-select';
 import CarCard from '../components/CarCard';
 import TestDriveModal from '../components/TestDriveModal';
 import { useCars } from '../context/CarsContext';
@@ -36,17 +37,30 @@ const CarsPage = () => {
     };
   }, [allCars]);
 
+  // Вычисляем диапазон годов из всех автомобилей
+  const yearRange = useMemo(() => {
+    const years = allCars.filter(car => car.year > 0).map(car => car.year);
+    if (years.length === 0) return { min: 2000, max: new Date().getFullYear() };
+    return {
+      min: Math.min(...years),
+      max: Math.max(...years)
+    };
+  }, [allCars]);
+
   // Читаем фильтры из URL или используем значения по умолчанию
   const searchTerm = searchParams.get('search') || '';
-  const makeFilter = searchParams.get('make') || '';
+  // Множественные фильтры хранятся как строки через запятую (например: "BMW,Audi")
+  const makeFilter = searchParams.get('make') ? searchParams.get('make').split(',') : [];
   const modelFilter = searchParams.get('model') || '';
-  const bodyTypeFilter = searchParams.get('bodyType') || '';
-  const fuelTypeFilter = searchParams.get('fuelType') || '';
-  const transmissionFilter = searchParams.get('transmission') || '';
+  const bodyTypeFilter = searchParams.get('bodyType') ? searchParams.get('bodyType').split(',') : [];
+  const fuelTypeFilter = searchParams.get('fuelType') ? searchParams.get('fuelType').split(',') : [];
+  const transmissionFilter = searchParams.get('transmission') ? searchParams.get('transmission').split(',') : [];
   const minPrice = parseInt(searchParams.get('minPrice') || priceRange.min);
   const maxPrice = parseInt(searchParams.get('maxPrice') || priceRange.max);
   const minMileage = parseInt(searchParams.get('minMileage') || mileageRange.min);
   const maxMileage = parseInt(searchParams.get('maxMileage') || mileageRange.max);
+  const minYear = parseInt(searchParams.get('minYear') || yearRange.min);
+  const maxYear = parseInt(searchParams.get('maxYear') || yearRange.max);
   const sortBy = searchParams.get('sortBy') || 'price-asc';
 
   // Функция для обновления URL параметров
@@ -70,11 +84,12 @@ const CarsPage = () => {
     const matchesSearch = searchTerm === '' ||
       `${car.make} ${car.model}`.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesMake = makeFilter === '' || car.make === makeFilter;
+    // Множественные фильтры: если массив пустой - показываем все, иначе проверяем вхождение
+    const matchesMake = makeFilter.length === 0 || makeFilter.includes(car.make);
     const matchesModel = modelFilter === '' || car.model === modelFilter;
-    const matchesBodyType = bodyTypeFilter === '' || car.bodyType === bodyTypeFilter;
-    const matchesFuelType = fuelTypeFilter === '' || car.fuelType === fuelTypeFilter;
-    const matchesTransmission = transmissionFilter === '' || car.transmission === transmissionFilter;
+    const matchesBodyType = bodyTypeFilter.length === 0 || bodyTypeFilter.includes(car.bodyType);
+    const matchesFuelType = fuelTypeFilter.length === 0 || fuelTypeFilter.includes(car.fuelType);
+    const matchesTransmission = transmissionFilter.length === 0 || transmissionFilter.includes(car.transmission);
 
     // Фильтруем по диапазону цен
     const matchesPrice = car.price >= minPrice && car.price <= maxPrice;
@@ -82,7 +97,10 @@ const CarsPage = () => {
     // Фильтруем по диапазону пробега
     const matchesMileage = car.mileage >= minMileage && car.mileage <= maxMileage;
 
-    return matchesSearch && matchesMake && matchesModel && matchesBodyType && matchesFuelType && matchesTransmission && matchesPrice && matchesMileage;
+    // Фильтруем по диапазону годов
+    const matchesYear = car.year >= minYear && car.year <= maxYear;
+
+    return matchesSearch && matchesMake && matchesModel && matchesBodyType && matchesFuelType && matchesTransmission && matchesPrice && matchesMileage && matchesYear;
   });
 
   // Сортируем отфильтрованные автомобили
@@ -154,29 +172,23 @@ const CarsPage = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
 
             {/* Make Filter */}
-            <select
+            <MultiSelect
               id="car-make-filter"
+              placeholder="Any Make"
+              options={uniqueMakes}
               value={makeFilter}
-              onChange={(e) => {
+              onChange={(selectedMakes) => {
                 const newParams = new URLSearchParams(searchParams);
-                if (e.target.value) {
-                  newParams.set('make', e.target.value);
+                if (selectedMakes.length > 0) {
+                  newParams.set('make', selectedMakes.join(','));
                 } else {
                   newParams.delete('make');
                 }
                 // При смене марки сбрасываем фильтр по модели
-                if (e.target.value !== makeFilter) {
-                  newParams.delete('model');
-                }
+                newParams.delete('model');
                 setSearchParams(newParams);
               }}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Any Make</option>
-              {uniqueMakes.map(make => (
-                <option key={make} value={make}>{make}</option>
-              ))}
-            </select>
+            />
 
             {/* Model Filter */}
             <select
@@ -193,43 +205,55 @@ const CarsPage = () => {
             </select>
 
             {/* Body Type Filter */}
-            <select
+            <MultiSelect
               id="car-body-type-filter"
+              placeholder="Any Body Type"
+              options={uniqueBodyTypes}
               value={bodyTypeFilter}
-              onChange={(e) => updateFilter('bodyType', e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Any Body Type</option>
-              {uniqueBodyTypes.map(bodyType => (
-                <option key={bodyType} value={bodyType}>{bodyType}</option>
-              ))}
-            </select>
+              onChange={(selectedBodyTypes) => {
+                const newParams = new URLSearchParams(searchParams);
+                if (selectedBodyTypes.length > 0) {
+                  newParams.set('bodyType', selectedBodyTypes.join(','));
+                } else {
+                  newParams.delete('bodyType');
+                }
+                setSearchParams(newParams);
+              }}
+            />
 
             {/* Fuel Type Filter */}
-            <select
+            <MultiSelect
               id="car-fuel-type-filter"
+              placeholder="Any Fuel Type"
+              options={uniqueFuelTypes}
               value={fuelTypeFilter}
-              onChange={(e) => updateFilter('fuelType', e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Any Fuel Type</option>
-              {uniqueFuelTypes.map(fuelType => (
-                <option key={fuelType} value={fuelType}>{fuelType}</option>
-              ))}
-            </select>
+              onChange={(selectedFuelTypes) => {
+                const newParams = new URLSearchParams(searchParams);
+                if (selectedFuelTypes.length > 0) {
+                  newParams.set('fuelType', selectedFuelTypes.join(','));
+                } else {
+                  newParams.delete('fuelType');
+                }
+                setSearchParams(newParams);
+              }}
+            />
 
             {/* Transmission Filter */}
-            <select
+            <MultiSelect
               id="car-transmission-filter"
+              placeholder="Any Transmission"
+              options={uniqueTransmissions}
               value={transmissionFilter}
-              onChange={(e) => updateFilter('transmission', e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Any Transmission</option>
-              {uniqueTransmissions.map(transmission => (
-                <option key={transmission} value={transmission}>{transmission}</option>
-              ))}
-            </select>
+              onChange={(selectedTransmissions) => {
+                const newParams = new URLSearchParams(searchParams);
+                if (selectedTransmissions.length > 0) {
+                  newParams.set('transmission', selectedTransmissions.join(','));
+                } else {
+                  newParams.delete('transmission');
+                }
+                setSearchParams(newParams);
+              }}
+            />
 
             {/* Sort By */}
             <select
@@ -247,8 +271,8 @@ const CarsPage = () => {
             </select>
           </div>
 
-          {/* Price and Mileage Range Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+          {/* Price, Mileage and Year Range Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-4">
             {/* Price Range */}
             <RangeSlider
               min={priceRange.min}
@@ -281,6 +305,23 @@ const CarsPage = () => {
               }}
               formatValue={(value) => `${value.toLocaleString()} km`}
               label="Mileage"
+            />
+
+            {/* Year Range */}
+            <RangeSlider
+              min={yearRange.min}
+              max={yearRange.max}
+              step={1}
+              minValue={minYear}
+              maxValue={maxYear}
+              onChange={(min, max) => {
+                const newParams = new URLSearchParams(searchParams);
+                newParams.set('minYear', min);
+                newParams.set('maxYear', max);
+                setSearchParams(newParams);
+              }}
+              formatValue={(value) => `${value}`}
+              label="Year"
             />
           </div>
 
