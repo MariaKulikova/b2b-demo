@@ -68,6 +68,10 @@ export class CommandExecutor {
         case 'clear_filters':
           return this.clearFilters(params);
 
+        // ===== СОРТИРОВКА =====
+        case 'set_sort':
+          return this.setSort(params);
+
         // ===== ПРОСТЫЕ ДЕЙСТВИЯ =====
         case 'scroll_top':
           window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -402,6 +406,31 @@ export class CommandExecutor {
         element.dispatchEvent(new Event('change', { bubbles: true }));
       }
     });
+  }
+
+  /**
+   * Установка сортировки
+   * Параметры: { sortBy: 'price-asc' | 'price-desc' | 'year-desc' | 'year-asc' | 'mileage-asc' | 'mileage-desc' }
+   */
+  setSort({ sortBy }) {
+    if (!sortBy) {
+      return { success: false, error: 'sortBy is required' };
+    }
+
+    // Получаем текущие параметры из URL
+    const hash = window.location.hash;
+    const [path, queryString] = hash.split('?');
+    const params = new URLSearchParams(queryString || '');
+
+    // Устанавливаем параметр sortBy
+    params.set('sortBy', sortBy);
+
+    // Обновляем URL
+    const newHash = params.toString() ? `${path}?${params.toString()}` : path;
+    console.log(`[CommandExecutor] Setting sortBy to: ${sortBy}`);
+    window.location.hash = newHash;
+
+    return { success: true, action: `set sort to ${sortBy}` };
   }
 }
 

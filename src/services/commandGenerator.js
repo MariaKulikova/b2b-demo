@@ -48,6 +48,9 @@ export function generateCommands(cars, currentRoute) {
     // Очистка фильтров
     commands.push(generateClearFiltersCommand());
 
+    // Сортировка
+    commands.push(generateSetSortCommand());
+
     // Простые действия
     commands.push(...generateSimpleActions());
   }
@@ -249,6 +252,21 @@ function generateClearFiltersCommand() {
         type: 'array',
         optional: true,
         enum: ['make', 'model', 'price', 'mileage', 'bodyType', 'transmission', 'fuelType', 'color', 'year', 'all']
+      }
+    }
+  };
+}
+
+/**
+ * Команда для изменения сортировки
+ */
+function generateSetSortCommand() {
+  return {
+    id: 'set_sort',
+    params: {
+      sortBy: {
+        type: 'string',
+        enum: ['price-asc', 'price-desc', 'year-desc', 'year-asc', 'mileage-asc', 'mileage-desc']
       }
     }
   };
