@@ -53,11 +53,11 @@ const HomePage = () => {
       <section className="relative text-white overflow-hidden pb-8">
         <div className="absolute inset-0 bg-cover bg-left" style={{ backgroundImage: 'url(/assets/Body.jpg)', transform: 'scaleX(-1)' }}></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-24 text-left">
+          <div className="pt-24 pb-16 text-left">
             <h1 className="text-4xl md:text-6xl font-bold mb-3">
               FIND YOUR DREAM CAR
             </h1>
-            <p className="text-xl md:text-2xl mb-12 text-gray-200">
+            <p className="text-xl md:text-2xl mb-1 text-gray-200">
               Browse our range of quality vehicles in Amsterdam
             </p>
           </div>
