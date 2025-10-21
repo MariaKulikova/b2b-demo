@@ -6,6 +6,35 @@ const INVENTORY_ID = import.meta.env.VITE_INVENTORY_ID || 'autopolis_shiftgears_
 // Экспортируем INVENTORY_ID для использования в других модулях (например, browser control)
 export { INVENTORY_ID };
 
+// Маппинг французских bodyStyle из API в английские bodyType для UI
+const BODY_TYPE_MAPPING = {
+  'Berline': 'Sedan',
+  'Berline (4 dr)': 'Sedan',
+  'Coupé': 'Coupe',
+  'Cabriolet': 'Convertible',
+  'Décapotable (2 dr)': 'Convertible',
+  'Voiture à hayon': 'Hatchback',
+  'Voiture à hayon (3 portes)': 'Hatchback',
+  'Crossover': 'Crossover',
+  'SUV': 'SUV',
+  'Break': 'Wagon',
+  'Monospace': 'Van',
+  'Ludospace': 'Van',
+  'Fourgon': 'Van',
+  'Pick-Up': 'Pickup',
+  'Utilitaire': 'Commercial',
+  '': 'N/A'
+};
+
+/**
+ * Переводит французское название bodyStyle в английское bodyType
+ * @param {string} bodyStyle - Французское название из API
+ * @returns {string} Английское название для UI
+ */
+const translateBodyType = (bodyStyle) => {
+  return BODY_TYPE_MAPPING[bodyStyle] || bodyStyle || 'N/A';
+};
+
 /**
  * Получить список всех автомобилей из API
  * @returns {Promise<Array>} Массив автомобилей
@@ -49,8 +78,8 @@ export const fetchCarInventory = async () => {
       fuelType: car.fuelType || 'N/A',
       transmission: car.transmission || 'N/A',
       color: car.color || 'N/A',
-      // Маппим bodyStyle из API в bodyType для приложения
-      bodyType: car.bodyStyle || 'N/A'
+      // Маппим bodyStyle из API (французский) в bodyType для приложения (английский)
+      bodyType: translateBodyType(car.bodyStyle)
     }));
   } catch (error) {
     console.error('Error fetching car inventory:', error);

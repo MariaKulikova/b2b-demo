@@ -134,6 +134,8 @@ export class CommandExecutor {
    * Параметры: { filters: { make: [...], price: { min, max }, ... } }
    */
   setMultipleFilters({ filters }) {
+    console.log('[CommandExecutor] setMultipleFilters called with:', filters);
+
     if (!filters || typeof filters !== 'object') {
       return { success: false, error: 'filters object is required' };
     }
@@ -141,30 +143,67 @@ export class CommandExecutor {
     const appliedFilters = [];
     const errors = [];
 
-    Object.entries(filters).forEach(([filterType, value]) => {
-      const selector = this.filterSelectors[filterType];
-      if (!selector) {
-        errors.push(`Unknown filter type: ${filterType}`);
-        return;
-      }
+    // Range фильтры которые работают напрямую через URL (без DOM элементов)
+    const urlRangeFilters = ['price', 'mileage'];
 
-      const element = document.querySelector(selector);
-      if (!element) {
-        errors.push(`Filter element not found: ${selector}`);
-        return;
-      }
+    Object.entries(filters).forEach(([filterType, value]) => {
+      console.log(`[CommandExecutor] Processing filter: ${filterType}`, value);
+      console.log(`[CommandExecutor] Value type: ${typeof value}, isArray: ${Array.isArray(value)}`);
 
       try {
         if (Array.isArray(value)) {
-          // Категориальный фильтр
+          // Категориальный фильтр - требует DOM элемент
+          const selector = this.filterSelectors[filterType];
+          if (!selector) {
+            console.warn(`[CommandExecutor] Unknown filter type: ${filterType}`);
+            errors.push(`Unknown filter type: ${filterType}`);
+            return;
+          }
+
+          const element = document.querySelector(selector);
+          if (!element) {
+            console.warn(`[CommandExecutor] Element not found for selector: ${selector}`);
+            errors.push(`Filter element not found: ${selector}`);
+            return;
+          }
+
+          console.log(`[CommandExecutor] Found element for ${filterType}:`, element);
+          console.log(`[CommandExecutor] Applying values filter for ${filterType}:`, value);
           this.applyValuesFilter(element, value);
           appliedFilters.push(`${filterType}: ${value.join(', ')}`);
         } else if (typeof value === 'object' && (value.min !== undefined || value.max !== undefined)) {
           // Численный range фильтр
-          this.applyRangeFilter(element, filterType, value);
-          appliedFilters.push(`${filterType}: ${value.min || 'any'} - ${value.max || 'any'}`);
+          if (urlRangeFilters.includes(filterType)) {
+            // Range фильтры работают напрямую с URL, не требуют DOM элемента
+            console.log(`[CommandExecutor] Applying URL range filter for ${filterType}:`, value);
+            this.applyRangeFilter(null, filterType, value);
+            appliedFilters.push(`${filterType}: ${value.min || 'any'} - ${value.max || 'any'}`);
+          } else {
+            // Другие range фильтры используют DOM элементы
+            const selector = this.filterSelectors[filterType];
+            if (!selector) {
+              console.warn(`[CommandExecutor] Unknown filter type: ${filterType}`);
+              errors.push(`Unknown filter type: ${filterType}`);
+              return;
+            }
+
+            const element = document.querySelector(selector);
+            if (!element) {
+              console.warn(`[CommandExecutor] Element not found for selector: ${selector}`);
+              errors.push(`Filter element not found: ${selector}`);
+              return;
+            }
+
+            console.log(`[CommandExecutor] Found element for ${filterType}:`, element);
+            console.log(`[CommandExecutor] Applying range filter for ${filterType}:`, value);
+            this.applyRangeFilter(element, filterType, value);
+            appliedFilters.push(`${filterType}: ${value.min || 'any'} - ${value.max || 'any'}`);
+          }
+        } else {
+          console.warn(`[CommandExecutor] Unknown value type for ${filterType}:`, value);
         }
       } catch (error) {
+        console.error(`[CommandExecutor] Error applying ${filterType}:`, error);
         errors.push(`Error applying ${filterType}: ${error.message}`);
       }
     });
@@ -207,23 +246,48 @@ export class CommandExecutor {
 
   /**
    * Применение range фильтра (min/max)
+   * Работает напрямую с URL параметрами, т.к. RangeSlider - кастомный компонент без input элементов
+   * @param {HTMLElement|null} _element - Не используется для price/mileage (работа через URL)
+   * @param {string} filterType - Тип фильтра (price, mileage)
+   * @param {Object} params - Параметры min/max
    */
-  applyRangeFilter(element, filterType, { min, max }) {
-    // Для численных диапазонов может быть два input поля или один range slider
-    const minInput = document.querySelector(`#${filterType}-min`);
-    const maxInput = document.querySelector(`#${filterType}-max`);
+  applyRangeFilter(_element, filterType, { min, max }) {
+    console.log(`[CommandExecutor] applyRangeFilter: filterType=${filterType}, min=${min}, max=${max}`);
 
-    if (minInput && min !== undefined) {
-      minInput.value = min;
-      minInput.dispatchEvent(new Event('input', { bubbles: true }));
-      minInput.dispatchEvent(new Event('change', { bubbles: true }));
+    // Получаем текущие параметры из URL
+    const hash = window.location.hash;
+    const [path, queryString] = hash.split('?');
+    const params = new URLSearchParams(queryString || '');
+
+    console.log(`[CommandExecutor] Current URL: ${hash}`);
+    console.log(`[CommandExecutor] Current params:`, Array.from(params.entries()));
+
+    // Маппинг типов фильтров на параметры URL
+    const paramMapping = {
+      price: { min: 'minPrice', max: 'maxPrice' },
+      mileage: { min: 'minMileage', max: 'maxMileage' }
+    };
+
+    const mapping = paramMapping[filterType];
+    if (!mapping) {
+      console.warn(`[CommandExecutor] No URL parameter mapping for filter type: ${filterType}`);
+      return;
     }
 
-    if (maxInput && max !== undefined) {
-      maxInput.value = max;
-      maxInput.dispatchEvent(new Event('input', { bubbles: true }));
-      maxInput.dispatchEvent(new Event('change', { bubbles: true }));
+    // Устанавливаем параметры min/max
+    if (min !== undefined && mapping.min) {
+      params.set(mapping.min, min);
+      console.log(`[CommandExecutor] Set ${mapping.min} = ${min}`);
     }
+    if (max !== undefined && mapping.max) {
+      params.set(mapping.max, max);
+      console.log(`[CommandExecutor] Set ${mapping.max} = ${max}`);
+    }
+
+    // Обновляем URL
+    const newHash = params.toString() ? `${path}?${params.toString()}` : path;
+    console.log(`[CommandExecutor] New URL hash: ${newHash}`);
+    window.location.hash = newHash;
   }
 
   /**
