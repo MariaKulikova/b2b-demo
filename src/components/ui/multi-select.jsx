@@ -60,7 +60,7 @@ export const MultiSelect = ({
         id={id}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3 py-2 text-left border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between"
+        className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-left focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-colors flex items-center justify-between"
       >
         <span className={value.length === 0 ? 'text-gray-500' : 'text-gray-900'}>
           {getDisplayText()}
@@ -85,7 +85,7 @@ export const MultiSelect = ({
 
       {/* Dropdown with checkboxes */}
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {options.length === 0 ? (
             <div className="px-3 py-2 text-gray-500 text-sm">No options available</div>
           ) : (
@@ -99,7 +99,7 @@ export const MultiSelect = ({
                     type="checkbox"
                     checked={value.includes(option)}
                     onChange={() => toggleOption(option)}
-                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="mr-3 h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 rounded"
                   />
                   <span className="text-sm text-gray-900">{option}</span>
                 </label>

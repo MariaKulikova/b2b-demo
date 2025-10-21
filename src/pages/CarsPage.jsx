@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Search, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Select } from '../components/ui/select';
 import { RangeSlider } from '../components/ui/range-slider';
 import { MultiSelect } from '../components/ui/multi-select';
 import CarCard from '../components/CarCard';
@@ -191,18 +192,17 @@ const CarsPage = () => {
             />
 
             {/* Model Filter */}
-            <select
+            <Select
               id="car-model-filter"
               value={modelFilter}
               onChange={(e) => updateFilter('model', e.target.value)}
               disabled={availableModels.length === 0}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
               <option value="">Any Model</option>
               {availableModels.map(model => (
                 <option key={model} value={model}>{model}</option>
               ))}
-            </select>
+            </Select>
 
             {/* Body Type Filter */}
             <MultiSelect
@@ -256,11 +256,10 @@ const CarsPage = () => {
             />
 
             {/* Sort By */}
-            <select
+            <Select
               id="car-sort-filter"
               value={sortBy}
               onChange={(e) => updateFilter('sortBy', e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="price-asc">Price: Low to High</option>
               <option value="price-desc">Price: High to Low</option>
@@ -268,7 +267,7 @@ const CarsPage = () => {
               <option value="year-asc">Year: Oldest First</option>
               <option value="mileage-asc">Mileage: Low to High</option>
               <option value="mileage-desc">Mileage: High to Low</option>
-            </select>
+            </Select>
           </div>
 
           {/* Price, Mileage and Year Range Filters */}

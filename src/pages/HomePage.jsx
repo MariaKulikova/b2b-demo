@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Star, Shield, Award, Loader2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, Star, Shield, Award, Loader2, Search, Mic } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Select } from '../components/ui/select';
 import CarCard from '../components/CarCard';
 import TestDriveModal from '../components/TestDriveModal';
 import { useCars } from '../context/CarsContext';
@@ -9,10 +11,36 @@ import { useCars } from '../context/CarsContext';
 const HomePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [makeFilter, setMakeFilter] = useState('');
+  const [modelFilter, setModelFilter] = useState('');
+
+  const navigate = useNavigate();
   const { getHotOffers, getAllCars, loading, error } = useCars();
 
   const hotOffers = getHotOffers();
   const allCars = getAllCars();
+
+  const uniqueMakes = useMemo(() =>
+    [...new Set(allCars.map(car => car.make))].sort(),
+    [allCars]
+  );
+
+  const availableModels = useMemo(() =>
+    makeFilter === ''
+      ? [...new Set(allCars.map(car => car.model))].sort()
+      : [...new Set(allCars.filter(car => car.make === makeFilter).map(car => car.model))].sort(),
+    [allCars, makeFilter]
+  );
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (searchTerm) params.set('search', searchTerm);
+    if (makeFilter) params.set('make', makeFilter);
+    if (modelFilter) params.set('model', modelFilter);
+    navigate(`/cars?${params.toString()}`);
+  };
 
   const handleBookTestDrive = (car) => {
     setSelectedCar(car);
@@ -22,23 +50,62 @@ const HomePage = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="py-8">
+      <section className="relative text-white overflow-hidden pb-8">
+        <div className="absolute inset-0 bg-cover bg-left" style={{ backgroundImage: 'url(/assets/Body.jpg)', transform: 'scaleX(-1)' }}></div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="pt-24 pb-16 text-left">
+            <h1 className="text-4xl md:text-6xl font-bold mb-3">
+              FIND YOUR DREAM CAR
+            </h1>
+            <p className="text-xl md:text-2xl mb-1 text-gray-200">
+              Browse our range of quality vehicles in Amsterdam
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Button positioned to overlap banner */}
+      <div className="relative -mt-8 z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+          <Link to="/cars">
+            <Button size="lg" variant="secondary">
+              <Mic className="mr-2 h-5 w-5" />
+              Help me find a car
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative text-white rounded-2xl overflow-hidden">
-            <div className="absolute inset-0 bg-cover bg-left" style={{ backgroundImage: 'url(/assets/Light.jpg)', transform: 'scaleX(-1)' }}></div>
-            <div className="relative z-10 py-32 px-8 sm:px-12 lg:px-16 text-left">
-              <h1 className="text-4xl md:text-6xl font-bold mb-3">
-                FIND YOUR DREAM CAR
-              </h1>
-              <p className="text-xl md:text-2xl mb-12 text-gray-200">
-                Browse our range of quality vehicles in Amsterdam
+          <div className="bg-gray-50 rounded-2xl shadow-lg p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-brand-dark" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Quality Guaranteed</h3>
+              <p className="text-gray-600">
+                Every vehicle undergoes thorough inspection and comes with our quality guarantee.
               </p>
-              <Link to="/cars">
-                <Button size="lg" variant="secondary">
-                  Browse Inventory
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+            </div>
+            <div className="text-center">
+              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-8 w-8 text-brand-dark" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Trusted Service</h3>
+              <p className="text-gray-600">
+                Over 15 years of experience serving Amsterdam with honest, reliable service.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="h-8 w-8 text-brand-dark" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Best Prices</h3>
+              <p className="text-gray-600">
+                Competitive pricing and flexible financing options to fit your budget.
+              </p>
             </div>
           </div>
         </div>
@@ -92,41 +159,6 @@ const HomePage = () => {
               <p className="text-gray-600">No hot offers available at the moment</p>
             </div>
           )}
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-brand-dark" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Quality Guaranteed</h3>
-              <p className="text-gray-600">
-                Every vehicle undergoes thorough inspection and comes with our quality guarantee.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-brand-dark" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Trusted Service</h3>
-              <p className="text-gray-600">
-                Over 15 years of experience serving Amsterdam with honest, reliable service.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8 text-brand-dark" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Best Prices</h3>
-              <p className="text-gray-600">
-                Competitive pricing and flexible financing options to fit your budget.
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
