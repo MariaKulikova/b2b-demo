@@ -41,6 +41,8 @@ const CarsPage = () => {
   const makeFilter = searchParams.get('make') || '';
   const modelFilter = searchParams.get('model') || '';
   const bodyTypeFilter = searchParams.get('bodyType') || '';
+  const fuelTypeFilter = searchParams.get('fuelType') || '';
+  const transmissionFilter = searchParams.get('transmission') || '';
   const minPrice = parseInt(searchParams.get('minPrice') || priceRange.min);
   const maxPrice = parseInt(searchParams.get('maxPrice') || priceRange.max);
   const minMileage = parseInt(searchParams.get('minMileage') || mileageRange.min);
@@ -71,6 +73,8 @@ const CarsPage = () => {
     const matchesMake = makeFilter === '' || car.make === makeFilter;
     const matchesModel = modelFilter === '' || car.model === modelFilter;
     const matchesBodyType = bodyTypeFilter === '' || car.bodyType === bodyTypeFilter;
+    const matchesFuelType = fuelTypeFilter === '' || car.fuelType === fuelTypeFilter;
+    const matchesTransmission = transmissionFilter === '' || car.transmission === transmissionFilter;
 
     // Фильтруем по диапазону цен
     const matchesPrice = car.price >= minPrice && car.price <= maxPrice;
@@ -78,7 +82,7 @@ const CarsPage = () => {
     // Фильтруем по диапазону пробега
     const matchesMileage = car.mileage >= minMileage && car.mileage <= maxMileage;
 
-    return matchesSearch && matchesMake && matchesModel && matchesBodyType && matchesPrice && matchesMileage;
+    return matchesSearch && matchesMake && matchesModel && matchesBodyType && matchesFuelType && matchesTransmission && matchesPrice && matchesMileage;
   });
 
   // Сортируем отфильтрованные автомобили
@@ -103,6 +107,8 @@ const CarsPage = () => {
 
   const uniqueMakes = [...new Set(allCars.map(car => car.make))].sort();
   const uniqueBodyTypes = [...new Set(allCars.map(car => car.bodyType))].sort();
+  const uniqueFuelTypes = [...new Set(allCars.map(car => car.fuelType))].sort();
+  const uniqueTransmissions = [...new Set(allCars.map(car => car.transmission))].sort();
 
   // Получаем модели для выбранной марки (или все, если марка не выбрана)
   const availableModels = makeFilter === ''
@@ -128,9 +134,9 @@ const CarsPage = () => {
 
         {/* Search and Filters */}
         <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {/* Search */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
@@ -142,6 +148,10 @@ const CarsPage = () => {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Фильтры в отдельной строке */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
 
             {/* Make Filter */}
             <select
@@ -186,6 +196,32 @@ const CarsPage = () => {
               <option value="">Any Body Type</option>
               {uniqueBodyTypes.map(bodyType => (
                 <option key={bodyType} value={bodyType}>{bodyType}</option>
+              ))}
+            </select>
+
+            {/* Fuel Type Filter */}
+            <select
+              id="car-fuel-type-filter"
+              value={fuelTypeFilter}
+              onChange={(e) => updateFilter('fuelType', e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Any Fuel Type</option>
+              {uniqueFuelTypes.map(fuelType => (
+                <option key={fuelType} value={fuelType}>{fuelType}</option>
+              ))}
+            </select>
+
+            {/* Transmission Filter */}
+            <select
+              id="car-transmission-filter"
+              value={transmissionFilter}
+              onChange={(e) => updateFilter('transmission', e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Any Transmission</option>
+              {uniqueTransmissions.map(transmission => (
+                <option key={transmission} value={transmission}>{transmission}</option>
               ))}
             </select>
 
