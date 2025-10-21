@@ -39,13 +39,13 @@ const CarCard = ({ car }) => {
           />
         )}
         {car.isHotOffer && (
-          <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">
+          <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-lg text-xs font-semibold">
             HOT OFFER
           </div>
         )}
       </div>
 
-      <CardContent className="p-4">
+      <CardContent className="p-4 pt-5">
         <div className="mb-3">
           <h3 className="text-lg font-semibold text-gray-900">
             {car.year} {car.make} {car.model}
