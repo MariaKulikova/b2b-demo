@@ -178,7 +178,7 @@ const CarsPage = () => {
 
             {/* Body Type Filter */}
             <select
-              id="car-bodytype-filter"
+              id="car-body-type-filter"
               value={bodyTypeFilter}
               onChange={(e) => updateFilter('bodyType', e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
