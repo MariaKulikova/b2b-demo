@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Car, Phone, Mail, MapPin, Clock } from 'lucide-react';
+import { Phone, Mail, Clock } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -9,9 +9,8 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <Car className="h-8 w-8 text-blue-400" />
-              <span className="text-2xl font-bold">Cool Cars</span>
+            <div className="mb-4">
+              <img src="/assets/Logo_demo_white.svg" alt="Cool Cars" className="h-10" />
             </div>
             <p className="text-gray-300 mb-4">
               Amsterdam's premier destination for quality used cars. We offer the best selection of pre-owned vehicles with guaranteed quality and service.

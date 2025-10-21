@@ -115,7 +115,7 @@ const HomePage = () => {
 
               <div className="text-center">
                 <Link to="/cars">
-                  <Button size="lg" className="bg-brand-dark hover:bg-red-900">
+                  <Button size="lg" className="bg-brand-dark hover:bg-brand-dark">
                     View All Cars
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
@@ -132,14 +132,14 @@ const HomePage = () => {
 
       {/* CTA Section */}
       <section className="bg-gray-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Ready to Find Your Perfect Car?
           </h2>
           <p className="text-xl text-gray-300 mb-8">
             Visit our showrooms in Amsterdam or contact us today
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4">
             <Link to="/contact">
               <Button size="lg" variant="secondary">
                 Contact Us
@@ -147,8 +147,7 @@ const HomePage = () => {
             </Link>
             <Button
               size="lg"
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-gray-900"
+              variant="secondary"
               onClick={() => window.location.href = 'tel:+447418613962'}
             >
               Call Now: +44 7418 613962
