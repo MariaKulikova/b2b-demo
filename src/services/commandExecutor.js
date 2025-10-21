@@ -104,6 +104,18 @@ export class CommandExecutor {
       return { success: false, error: 'filterType is required' };
     }
 
+    // Range фильтры которые работают напрямую через URL (без DOM элементов)
+    const urlRangeFilters = ['price', 'mileage'];
+
+    // Для численных фильтров (range) - обрабатываем сразу если это price/mileage
+    if ((min !== undefined || max !== undefined) && urlRangeFilters.includes(filterType)) {
+      // Range фильтры работают напрямую с URL, не требуют DOM элемента
+      console.log(`[CommandExecutor] Applying URL range filter for ${filterType}:`, { min, max });
+      this.applyRangeFilter(null, filterType, { min, max });
+      return { success: true, action: `applied ${filterType} range filter (min: ${min}, max: ${max})` };
+    }
+
+    // Для остальных фильтров проверяем наличие DOM элемента
     const selector = this.filterSelectors[filterType];
     if (!selector) {
       return { success: false, error: `Unknown filter type: ${filterType}` };
@@ -120,7 +132,7 @@ export class CommandExecutor {
       return { success: true, action: `applied ${filterType} filter with values: ${values.join(', ')}` };
     }
 
-    // Для численных фильтров (range)
+    // Для других численных фильтров (не price/mileage) с DOM элементами
     if (min !== undefined || max !== undefined) {
       this.applyRangeFilter(element, filterType, { min, max });
       return { success: true, action: `applied ${filterType} range filter (min: ${min}, max: ${max})` };
