@@ -2,7 +2,7 @@
 
 ## Доступные окружения
 
-### 1. Локальная разработка (`.env.local`)
+### 1. Локальная разработка (`.env.localhost`)
 Использует локальный API сервер на `localhost:3334`
 
 
@@ -13,6 +13,7 @@ pnpm dev:local
 **Конфигурация:**
 ```env
 VITE_CAR_API_URL=http://localhost:3334
+VITE_INVENTORY_ID=autopolis_shiftgears_demo
 VITE_BROWSER_CONTROL_WS_URL=ws://localhost:3334/browser-control
 VITE_ELEVENLABS_AGENT_ID=agent_5401k7rsje0efeha45my8vkajp8t
 ```
@@ -43,12 +44,12 @@ pnpm build        # Production build
 
 ### Первая настройка
 
-1. Скопируйте `.env.example` в `.env.local`:
+1. Скопируйте `.env.example` в `.env.localhost`:
 ```bash
-cp .env.example .env.local
+cp .env.example .env.localhost
 ```
 
-2. Отредактируйте `.env.local` под ваши локальные настройки
+2. Отредактируйте `.env.localhost` под ваши локальные настройки
 
 3. Запустите dev сервер:
 ```bash
