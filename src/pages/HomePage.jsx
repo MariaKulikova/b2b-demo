@@ -44,45 +44,10 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-brand-dark" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Quality Guaranteed</h3>
-              <p className="text-gray-600">
-                Every vehicle undergoes thorough inspection and comes with our quality guarantee.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-brand-dark" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Trusted Service</h3>
-              <p className="text-gray-600">
-                Over 15 years of experience serving Amsterdam with honest, reliable service.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8 text-brand-dark" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Best Prices</h3>
-              <p className="text-gray-600">
-                Competitive pricing and flexible financing options to fit your budget.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Hot Offers Section */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <div className="text-left mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Hot Offers
             </h2>
@@ -127,6 +92,41 @@ const HomePage = () => {
               <p className="text-gray-600">No hot offers available at the moment</p>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-brand-dark" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Quality Guaranteed</h3>
+              <p className="text-gray-600">
+                Every vehicle undergoes thorough inspection and comes with our quality guarantee.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-8 w-8 text-brand-dark" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Trusted Service</h3>
+              <p className="text-gray-600">
+                Over 15 years of experience serving Amsterdam with honest, reliable service.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="h-8 w-8 text-brand-dark" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Best Prices</h3>
+              <p className="text-gray-600">
+                Competitive pricing and flexible financing options to fit your budget.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

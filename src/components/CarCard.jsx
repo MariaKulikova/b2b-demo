@@ -47,7 +47,7 @@ const CarCard = ({ car }) => {
         )}
       </div>
 
-      <CardContent className="p-4">
+      <CardContent className="p-4 pt-5">
         <div className="mb-3">
           <h3 className="text-lg font-semibold text-gray-900">
             {car.year} {car.make} {car.model}

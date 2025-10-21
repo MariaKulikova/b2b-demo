@@ -10,7 +10,7 @@ export default {
         sans: ['Roboto', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'sans-serif'],
       },
       colors: {
-        'brand-dark': '#170202',
+        'brand-dark': '#1E1F29',
       },
     },
   },
