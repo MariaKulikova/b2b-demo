@@ -42,7 +42,7 @@ const translateBodyType = (bodyStyle) => {
 export const fetchCarInventory = async () => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/dealer-inventory/${INVENTORY_ID}?limit=80`,
+      `${API_BASE_URL}/dealer-inventory/${INVENTORY_ID}`,
       {
         headers: {
           'accept': 'application/json'
