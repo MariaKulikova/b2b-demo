@@ -9,6 +9,7 @@ import CarsPage from './pages/CarsPage';
 import CarDetailPage from './pages/CarDetailPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+import BookTestDrivePage from './pages/BookTestDrivePage';
 import { browserControlWS } from './services/browserControlWebSocket';
 import appConfig from './config/browserControlConfig';
 import { useCommands } from './hooks/useCommands';
@@ -28,6 +29,7 @@ function AppContent() {
           <Route path="/car/:id" element={<CarDetailPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/book-test-drive" element={<BookTestDrivePage />} />
         </Routes>
       </main>
       <Footer />

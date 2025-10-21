@@ -44,6 +44,7 @@ const CarsPage = () => {
   const maxPrice = parseInt(searchParams.get('maxPrice') || priceRange.max);
   const minMileage = parseInt(searchParams.get('minMileage') || mileageRange.min);
   const maxMileage = parseInt(searchParams.get('maxMileage') || mileageRange.max);
+  const sortBy = searchParams.get('sortBy') || 'price-asc';
 
   // Функция для обновления URL параметров
   const updateFilter = (key, value) => {
@@ -61,6 +62,7 @@ const CarsPage = () => {
     setIsModalOpen(true);
   };
 
+  // Фильтруем автомобили
   const filteredCars = allCars.filter(car => {
     const matchesSearch = searchTerm === '' ||
       `${car.make} ${car.model}`.toLowerCase().includes(searchTerm.toLowerCase());
@@ -75,6 +77,26 @@ const CarsPage = () => {
     const matchesMileage = car.mileage >= minMileage && car.mileage <= maxMileage;
 
     return matchesSearch && matchesMake && matchesModel && matchesPrice && matchesMileage;
+  });
+
+  // Сортируем отфильтрованные автомобили
+  const sortedCars = [...filteredCars].sort((a, b) => {
+    switch (sortBy) {
+      case 'price-asc':
+        return a.price - b.price;
+      case 'price-desc':
+        return b.price - a.price;
+      case 'year-desc':
+        return b.year - a.year;
+      case 'year-asc':
+        return a.year - b.year;
+      case 'mileage-asc':
+        return a.mileage - b.mileage;
+      case 'mileage-desc':
+        return b.mileage - a.mileage;
+      default:
+        return 0;
+    }
   });
 
   const uniqueMakes = [...new Set(allCars.map(car => car.make))].sort();
@@ -103,7 +125,7 @@ const CarsPage = () => {
 
         {/* Search and Filters */}
         <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
             {/* Search */}
             <div className="lg:col-span-2">
               <div className="relative">
@@ -149,6 +171,21 @@ const CarsPage = () => {
               {availableModels.map(model => (
                 <option key={model} value={model}>{model}</option>
               ))}
+            </select>
+
+            {/* Sort By */}
+            <select
+              id="car-sort-filter"
+              value={sortBy}
+              onChange={(e) => updateFilter('sortBy', e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="year-desc">Year: Newest First</option>
+              <option value="year-asc">Year: Oldest First</option>
+              <option value="mileage-asc">Mileage: Low to High</option>
+              <option value="mileage-desc">Mileage: High to Low</option>
             </select>
           </div>
 
@@ -216,14 +253,14 @@ const CarsPage = () => {
           <>
             <div className="mb-6">
               <p className="text-gray-600">
-                Showing {filteredCars.length} of {allCars.length} cars
+                Showing {sortedCars.length} of {allCars.length} cars
               </p>
             </div>
 
             {/* Cars Grid */}
-            {filteredCars.length > 0 ? (
+            {sortedCars.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredCars.map((car) => (
+                {sortedCars.map((car) => (
                   <CarCard
                     key={car.id}
                     car={car}

@@ -17,11 +17,9 @@ const CarCard = ({ car }) => {
     window.open(whatsappUrl, '_blank');
   };
 
-  const handleBookTestDrive = () => {
-    const message = `Hi! I'd like to book a test drive for ${car.year} ${car.make} ${car.model}`;
-    if (window.openChatWithMessage) {
-      window.openChatWithMessage(message);
-    }
+  const getBookTestDriveUrl = () => {
+    const carInfo = `${car.year} ${car.make} ${car.model}`;
+    return `/book-test-drive?car=${encodeURIComponent(carInfo)}`;
   };
 
   return (
@@ -61,12 +59,13 @@ const CarCard = ({ car }) => {
         </div>
 
         <div className="flex items-center space-x-2">
-          <Button
-            onClick={handleBookTestDrive}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white cta-button cursor-pointer"
-          >
-            Book Test Drive
-          </Button>
+          <Link to={getBookTestDriveUrl()}>
+            <Button
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white cta-button cursor-pointer"
+            >
+              Book Test Drive
+            </Button>
+          </Link>
           
           <button
             onClick={handleCallUs}
