@@ -28,7 +28,7 @@ const BookTestDrivePage = () => {
 
   return (
     <div className="flex flex-col bg-gray-50" style={{ height: 'calc(100vh - 64px)' }}>
-      {/* Header - адаптивный для всех разрешений */}
+      {/* Header - с ограничением ширины */}
       <div className="flex-none px-2 md:px-6 lg:px-8 py-2 md:py-4 bg-gray-50 max-w-7xl mx-auto w-full">
         <Link to="/cars" className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm md:text-base mb-2 md:mb-4">
           <ArrowLeft className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
@@ -44,19 +44,15 @@ const BookTestDrivePage = () => {
         )}
       </div>
 
-      {/* Iframe container - занимает всё оставшееся пространство */}
-      <div className="flex-1 px-2 md:px-6 lg:px-8 pb-2 md:pb-4 overflow-hidden max-w-7xl mx-auto w-full">
-        <div className="bg-white rounded-lg shadow-lg h-full p-1 md:p-4">
-          <iframe
-            src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ39juNzZ8J8mt60BefJ8-bPwf416OF2Agqt_Pn9C-1NAnt8O5_wsmt0o87wKuSThL94bXGx3_Zq?gv=true"
-            style={{ border: 0 }}
-            width="100%"
-            height="100%"
-            frameBorder="0"
-            title="Book Test Drive Calendar"
-            className="rounded-lg"
-          />
-        </div>
+      {/* Iframe container - full width без ограничений */}
+      <div className="flex-1 w-full min-h-0">
+        <iframe
+          src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ39juNzZ8J8mt60BefJ8-bPwf416OF2Agqt_Pn9C-1NAnt8O5_wsmt0o87wKuSThL94bXGx3_Zq?gv=true"
+          style={{ border: 0 }}
+          width="100%"
+          height="100%"
+          title="Book Test Drive Calendar"
+        />
       </div>
     </div>
   );
