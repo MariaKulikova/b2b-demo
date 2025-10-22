@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -142,6 +142,16 @@ const CarsPage = () => {
         return 0;
     }
   });
+
+  // Экспортируем отфильтрованные авто для browser control
+  useEffect(() => {
+    window.currentFilteredCars = {
+      cars: sortedCars,
+      total: sortedCars.length,
+      allCarsTotal: allCars.length,
+      timestamp: Date.now()
+    };
+  }, [sortedCars, allCars]);
 
   // Вычисляем доступные опции для каждого фильтра с учетом других фильтров
   const uniqueMakes = [...new Set(getFilteredCarsExcept('make').map(car => car.make))].sort();

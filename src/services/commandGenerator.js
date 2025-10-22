@@ -116,6 +116,20 @@ function generateNavigationCommands(currentRoute) {
     commands.push({ id: 'go_back_cars' });
   }
 
+  // Команда для бронирования тест-драйва (доступна всегда)
+  if (currentRoute !== '/book-test-drive') {
+    commands.push({
+      id: 'go_book_test_drive',
+      params: {
+        carInfo: {
+          type: 'string',
+          optional: true,
+          description: 'Car information string in format "year make model" (e.g., "2020 BMW X5")'
+        }
+      }
+    });
+  }
+
   return commands;
 }
 

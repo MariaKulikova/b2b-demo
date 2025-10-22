@@ -52,6 +52,9 @@ export class CommandExecutor {
         case 'go_back_cars':
           return this.navigateTo('/cars');
 
+        case 'go_book_test_drive':
+          return this.navigateToBookTestDrive(params);
+
         // ===== ОДИНОЧНЫЙ ФИЛЬТР =====
         case 'set_filter':
           return this.setSingleFilter(params);
@@ -97,6 +100,30 @@ export class CommandExecutor {
   navigateTo(route) {
     window.location.hash = `#${route}`;
     return { success: true, action: `navigated to ${route}` };
+  }
+
+  /**
+   * Навигация на страницу бронирования тест-драйва
+   * Параметры: { carInfo?: string } - опциональная информация о машине в формате "year make model"
+   */
+  navigateToBookTestDrive({ carInfo } = {}) {
+    let url = '/book-test-drive';
+
+    if (carInfo) {
+      // Добавляем query параметр car с информацией о машине
+      url += `?car=${encodeURIComponent(carInfo)}`;
+      console.log(`[CommandExecutor] Navigating to test drive booking for: ${carInfo}`);
+    } else {
+      console.log(`[CommandExecutor] Navigating to test drive booking (no car specified)`);
+    }
+
+    window.location.hash = `#${url}`;
+    return {
+      success: true,
+      action: carInfo
+        ? `navigated to test drive booking for ${carInfo}`
+        : 'navigated to test drive booking page'
+    };
   }
 
   /**
@@ -149,7 +176,7 @@ export class CommandExecutor {
    * Установка множественных фильтров
    * Параметры: { filters: { make: [...], price: { min, max }, ... } }
    */
-  setMultipleFilters({ filters }) {
+  async setMultipleFilters({ filters }) {
     console.log('[CommandExecutor] setMultipleFilters called with:', filters);
 
     if (!filters || typeof filters !== 'object') {
@@ -225,16 +252,24 @@ export class CommandExecutor {
     });
 
     if (errors.length > 0) {
+      // Даже при ошибках читаем результаты, если хотя бы часть фильтров применилась
+      const results = appliedFilters.length > 0 ? await this.waitAndGetFilteredResults() : null;
+
       return {
         success: appliedFilters.length > 0,
         action: `partially applied filters: ${appliedFilters.join('; ')}`,
-        error: errors.join('; ')
+        error: errors.join('; '),
+        results
       };
     }
 
+    // Ждем обновления React и читаем результаты
+    const results = await this.waitAndGetFilteredResults();
+
     return {
       success: true,
-      action: `applied filters: ${appliedFilters.join('; ')}`
+      action: `applied filters: ${appliedFilters.join('; ')}`,
+      results
     };
   }
 
@@ -431,6 +466,69 @@ export class CommandExecutor {
     window.location.hash = newHash;
 
     return { success: true, action: `set sort to ${sortBy}` };
+  }
+
+  /**
+   * Ждем обновления React и читаем отфильтрованные результаты
+   * @returns {Promise<Object>} Результаты фильтрации
+   */
+  async waitAndGetFilteredResults() {
+    // Ждем чтобы React обновил состояние и экспортировал результаты
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    const filteredData = window.currentFilteredCars;
+
+    if (!filteredData || !Array.isArray(filteredData.cars)) {
+      console.warn('[CommandExecutor] No filtered cars found in window.currentFilteredCars');
+      return null;
+    }
+
+    const { cars, total, allCarsTotal } = filteredData;
+
+    // Форматируем первые 10 машин для агента
+    const showing = Math.min(10, cars.length);
+    const formattedCars = cars.slice(0, showing).map(this.formatCarForAgent);
+
+    // Вычисляем диапазоны
+    const prices = cars.filter(c => c.price > 0).map(c => c.price);
+    const mileages = cars.filter(c => c.mileage >= 0).map(c => c.mileage);
+
+    const priceRange = prices.length > 0
+      ? { min: Math.min(...prices), max: Math.max(...prices) }
+      : null;
+
+    const mileageRange = mileages.length > 0
+      ? { min: Math.min(...mileages), max: Math.max(...mileages) }
+      : null;
+
+    return {
+      total,
+      allCarsTotal,
+      showing,
+      cars: formattedCars,
+      priceRange,
+      mileageRange
+    };
+  }
+
+  /**
+   * Форматирование машины для агента
+   * @param {Object} car - Объект машины
+   * @returns {Object} Форматированная информация для агента
+   */
+  formatCarForAgent(car) {
+    return {
+      id: car.id,
+      title: `${car.year} ${car.make} ${car.model}`,
+      price: car.price,
+      mileage: car.mileage,
+      year: car.year,
+      make: car.make,
+      model: car.model,
+      bodyType: car.bodyType || 'N/A',
+      fuelType: car.fuelType || 'N/A',
+      transmission: car.transmission || 'N/A'
+    };
   }
 }
 
