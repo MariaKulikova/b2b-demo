@@ -26,7 +26,7 @@ const HomePage = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative text-white overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-left" style={{ backgroundImage: 'url(/assets/Body.jpg)', transform: 'scaleX(-1)' }}></div>
+        <div className="absolute inset-0 bg-cover bg-left" style={{ backgroundImage: 'url(/assets/Body.jpg)' }}></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-24 text-left">
             <h1 className="text-4xl md:text-6xl font-bold mb-3">
