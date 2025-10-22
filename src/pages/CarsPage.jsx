@@ -149,6 +149,7 @@ const CarsPage = () => {
       cars: sortedCars,
       total: sortedCars.length,
       allCarsTotal: allCars.length,
+      visibleOfferIds: sortedCars.map(car => car.id),  // Все видимые offer IDs
       timestamp: Date.now()
     };
   }, [sortedCars, allCars]);
