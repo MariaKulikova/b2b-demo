@@ -62,7 +62,7 @@ const CarsPage = () => {
   const maxMileage = parseInt(searchParams.get('maxMileage') || mileageRange.max);
   const minYear = parseInt(searchParams.get('minYear') || yearRange.min);
   const maxYear = parseInt(searchParams.get('maxYear') || yearRange.max);
-  const sortBy = searchParams.get('sortBy') || 'price-asc';
+  const sortBy = searchParams.get('sortBy') || 'price-desc';
 
   // Функция для обновления URL параметров
   const updateFilter = (key, value) => {
