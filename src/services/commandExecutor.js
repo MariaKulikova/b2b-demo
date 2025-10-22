@@ -26,6 +26,29 @@ export class CommandExecutor {
   }
 
   /**
+   * Оптимизированное чтение результатов фильтрации
+   * Проверяет свежесть данных и читает либо сразу, либо после RAF
+   * @returns {Promise<Object>} Promise с результатами
+   */
+  async getFilteredResultsOptimized() {
+    return new Promise(resolve => {
+      const tryGetResults = () => {
+        const results = this.getFilteredResults();
+        resolve(results);
+      };
+
+      // Проверяем свежесть данных (обновлены за последние 100ms)
+      if (window.currentFilteredCars?.timestamp > Date.now() - 100) {
+        // Данные свежие - читаем сразу (0ms задержка)
+        tryGetResults();
+      } else {
+        // Данные устарели - ждем следующий фрейм (~16ms задержка)
+        requestAnimationFrame(tryGetResults);
+      }
+    });
+  }
+
+  /**
    * Выполнение команды
    * @param {string} commandId - ID команды
    * @param {Object} params - Параметры команды
@@ -99,11 +122,9 @@ export class CommandExecutor {
    */
   navigateTo(route) {
     window.location.hash = `#${route}`;
-    // Скроллим наверх после навигации - используем requestAnimationFrame для синхронизации с рендером
+    // Скроллим наверх после навигации (оптимизированно - одинарный RAF)
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: 0, behavior: 'instant' });
-      });
+      window.scrollTo({ top: 0, behavior: 'instant' });
     });
     return { success: true, action: `navigated to ${route}` };
   }
@@ -124,11 +145,9 @@ export class CommandExecutor {
     }
 
     window.location.hash = `#${url}`;
-    // Скроллим наверх после навигации - используем requestAnimationFrame для синхронизации с рендером
+    // Скроллим наверх после навигации (оптимизированно - одинарный RAF)
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: 0, behavior: 'instant' });
-      });
+      window.scrollTo({ top: 0, behavior: 'instant' });
     });
     return {
       success: true,
@@ -142,7 +161,7 @@ export class CommandExecutor {
    * Установка одного фильтра
    * Параметры: { filterType, values?, min?, max? }
    */
-  setSingleFilter({ filterType, values, min, max }) {
+  async setSingleFilter({ filterType, values, min, max }) {
     if (!filterType) {
       return { success: false, error: 'filterType is required' };
     }
@@ -156,17 +175,13 @@ export class CommandExecutor {
       console.log(`[CommandExecutor] Applying URL range filter for ${filterType}:`, { min, max });
       this.applyRangeFilter(null, filterType, { min, max });
 
-      // Читаем результаты после применения фильтра
-      return new Promise(resolve => {
-        requestAnimationFrame(() => {
-          const results = this.getFilteredResults();
-          resolve({
-            success: true,
-            action: `applied ${filterType} range filter (min: ${min}, max: ${max})`,
-            results
-          });
-        });
-      });
+      // Читаем результаты после применения фильтра (оптимизированно)
+      const results = await this.getFilteredResultsOptimized();
+      return {
+        success: true,
+        action: `applied ${filterType} range filter (min: ${min}, max: ${max})`,
+        results
+      };
     }
 
     // Для остальных фильтров проверяем наличие DOM элемента
@@ -183,31 +198,25 @@ export class CommandExecutor {
     // Для категориальных фильтров (select/multi-select)
     if (values) {
       this.applyValuesFilter(element, values, filterType);
-      return new Promise(resolve => {
-        requestAnimationFrame(() => {
-          const results = this.getFilteredResults();
-          resolve({
-            success: true,
-            action: `applied ${filterType} filter with values: ${values.join(', ')}`,
-            results
-          });
-        });
-      });
+      // Читаем результаты (оптимизированно)
+      const results = await this.getFilteredResultsOptimized();
+      return {
+        success: true,
+        action: `applied ${filterType} filter with values: ${values.join(', ')}`,
+        results
+      };
     }
 
     // Для других численных фильтров (не price/mileage) с DOM элементами
     if (min !== undefined || max !== undefined) {
       this.applyRangeFilter(element, filterType, { min, max });
-      return new Promise(resolve => {
-        requestAnimationFrame(() => {
-          const results = this.getFilteredResults();
-          resolve({
-            success: true,
-            action: `applied ${filterType} range filter (min: ${min}, max: ${max})`,
-            results
-          });
-        });
-      });
+      // Читаем результаты (оптимизированно)
+      const results = await this.getFilteredResultsOptimized();
+      return {
+        success: true,
+        action: `applied ${filterType} range filter (min: ${min}, max: ${max})`,
+        results
+      };
     }
 
     return { success: false, error: 'Either values or min/max must be provided' };
@@ -217,7 +226,7 @@ export class CommandExecutor {
    * Установка множественных фильтров
    * Параметры: { filters: { make: [...], price: { min, max }, ... } }
    */
-  setMultipleFilters({ filters }) {
+  async setMultipleFilters({ filters }) {
     console.log('[CommandExecutor] setMultipleFilters called with:', filters);
 
     if (!filters || typeof filters !== 'object') {
@@ -305,17 +314,14 @@ export class CommandExecutor {
     if (errors.length > 0) {
       // Даже при ошибках читаем результаты, если хотя бы часть фильтров применилась
       if (appliedFilters.length > 0) {
-        return new Promise(resolve => {
-          requestAnimationFrame(() => {
-            const results = this.getFilteredResults();
-            resolve({
-              success: true,
-              action: `partially applied filters: ${appliedFilters.join('; ')}`,
-              error: errors.join('; '),
-              results
-            });
-          });
-        });
+        // Читаем результаты (оптимизированно)
+        const results = await this.getFilteredResultsOptimized();
+        return {
+          success: true,
+          action: `partially applied filters: ${appliedFilters.join('; ')}`,
+          error: errors.join('; '),
+          results
+        };
       } else {
         return {
           success: false,
@@ -326,18 +332,13 @@ export class CommandExecutor {
       }
     }
 
-    // Читаем результаты синхронно после изменения URL
-    // requestAnimationFrame даст React возможность обновиться
-    return new Promise(resolve => {
-      requestAnimationFrame(() => {
-        const results = this.getFilteredResults();
-        resolve({
-          success: true,
-          action: `applied filters: ${appliedFilters.join('; ')}`,
-          results
-        });
-      });
-    });
+    // Читаем результаты после изменения URL (оптимизированно)
+    const results = await this.getFilteredResultsOptimized();
+    return {
+      success: true,
+      action: `applied filters: ${appliedFilters.join('; ')}`,
+      results
+    };
   }
 
   /**
@@ -362,7 +363,7 @@ export class CommandExecutor {
 
       if (!params) {
         const hash = window.location.hash;
-        const [path, queryString] = hash.split('?');
+        const [, queryString] = hash.split('?');
         params = new URLSearchParams(queryString || '');
         shouldUpdateHash = true;
       }
@@ -417,7 +418,7 @@ export class CommandExecutor {
 
     if (!params) {
       const hash = window.location.hash;
-      const [path, queryString] = hash.split('?');
+      const [, queryString] = hash.split('?');
       params = new URLSearchParams(queryString || '');
       shouldUpdateHash = true;
     }
@@ -479,10 +480,9 @@ export class CommandExecutor {
       // Оффер не существует - переходим на /cars и сообщаем об ошибке
       console.error('[CommandExecutor] Offer not found:', offerId);
       window.location.hash = '#/cars';
+      // Скролл наверх (оптимизированно - одинарный RAF)
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          window.scrollTo({ top: 0, behavior: 'instant' });
-        });
+        window.scrollTo({ top: 0, behavior: 'instant' });
       });
 
       return {
@@ -493,10 +493,9 @@ export class CommandExecutor {
 
     // Оффер существует - переходим на страницу детализации
     window.location.hash = `#/car/${offerId}`;
+    // Скролл наверх (оптимизированно - одинарный RAF)
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: 0, behavior: 'instant' });
-      });
+      window.scrollTo({ top: 0, behavior: 'instant' });
     });
 
     console.log(`[CommandExecutor] Navigated to offer: ${offerId}`);
@@ -510,7 +509,7 @@ export class CommandExecutor {
    * Очистка фильтров
    * Параметры: { filterTypes?: ['make', 'model', 'price', 'all'] }
    */
-  clearFilters({ filterTypes } = {}) {
+  async clearFilters({ filterTypes } = {}) {
     // Если filterTypes не указаны или содержат 'all', очищаем все
     if (!filterTypes || filterTypes.includes('all')) {
       const clearBtn = document.querySelector('#car-clear-filters-btn');
@@ -521,17 +520,13 @@ export class CommandExecutor {
         this.clearAllFiltersManually();
       }
 
-      // Читаем результаты после очистки
-      return new Promise(resolve => {
-        requestAnimationFrame(() => {
-          const results = this.getFilteredResults();
-          resolve({
-            success: true,
-            action: 'cleared all filters',
-            results
-          });
-        });
-      });
+      // Читаем результаты после очистки (оптимизированно)
+      const results = await this.getFilteredResultsOptimized();
+      return {
+        success: true,
+        action: 'cleared all filters',
+        results
+      };
     }
 
     // Очищаем конкретные фильтры
@@ -548,17 +543,13 @@ export class CommandExecutor {
       }
     });
 
-    // Читаем результаты после очистки
-    return new Promise(resolve => {
-      requestAnimationFrame(() => {
-        const results = this.getFilteredResults();
-        resolve({
-          success: true,
-          action: `cleared filters: ${clearedFilters.join(', ')}`,
-          results
-        });
-      });
-    });
+    // Читаем результаты после очистки (оптимизированно)
+    const results = await this.getFilteredResultsOptimized();
+    return {
+      success: true,
+      action: `cleared filters: ${clearedFilters.join(', ')}`,
+      results
+    };
   }
 
   /**
