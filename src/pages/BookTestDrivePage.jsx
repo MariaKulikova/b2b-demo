@@ -47,7 +47,7 @@ const BookTestDrivePage = () => {
       {/* Iframe container - full width без ограничений */}
       <div className="flex-1 w-full min-h-0">
         <iframe
-          src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ39juNzZ8J8mt60BefJ8-bPwf416OF2Agqt_Pn9C-1NAnt8O5_wsmt0o87wKuSThL94bXGx3_Zq?gv=true"
+          src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0vPE7FORIrEhBAMG2reI_GUfbseNWag-RGQX3lIlzrXaDdxALk6QKUMxpasjdYZ0Yw2yKVYM3X?gv=true"
           style={{ border: 0 }}
           width="100%"
           height="100%"

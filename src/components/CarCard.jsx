@@ -1,15 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Phone } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import CarImagePlaceholder from './CarImagePlaceholder';
 
 const CarCard = ({ car }) => {
-  const handleCallUs = () => {
-    window.location.href = 'tel:+447418613962';
-  };
-
   const handleWhatsApp = () => {
     const priceText = car.price > 0 ? `€${car.price.toLocaleString()}` : 'price on request';
     const message = `Hi! I'm interested in the ${car.year} ${car.make} ${car.model} (${priceText})`;
@@ -73,13 +68,6 @@ const CarCard = ({ car }) => {
               Book Test Drive
             </Button>
           </Link>
-
-          <button
-            onClick={handleCallUs}
-            className="h-10 w-10 flex items-center justify-center rounded-md border border-green-500 bg-white hover:bg-green-50 transition-colors cursor-pointer flex-shrink-0"
-          >
-            <Phone className="h-5 w-5 text-green-600" />
-          </button>
 
           <button
             onClick={handleWhatsApp}
