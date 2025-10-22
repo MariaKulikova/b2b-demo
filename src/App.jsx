@@ -23,6 +23,8 @@ function AppContent() {
   // Обновляем app config с данными об автомобилях
   useEffect(() => {
     const cars = getAllCars();
+    // Устанавливаем глобальную переменную для доступа из commandExecutor
+    window.allCars = cars;
     const config = generateAppConfig(cars);
     browserControlWS.setAppConfig(config);
     console.log('[App] Browser control app config initialized with', config.metadata.totalCars, 'cars');

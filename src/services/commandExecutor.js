@@ -472,13 +472,22 @@ export class CommandExecutor {
       };
     }
 
-    // Проверяем существование оффера в данных
-    const allCars = window.browserControlAppState?.cars || [];
+    // Проверяем существование оффера в данных (используем глобальную переменную из App)
+    const allCars = window.allCars || [];
+    console.log('[CommandExecutor] Checking offer existence:', {
+      offerId,
+      allCarsLength: allCars.length,
+      firstCarId: allCars[0]?.id,
+      firstCarIdType: typeof allCars[0]?.id,
+      searchingForType: typeof offerId
+    });
+
     const carExists = allCars.find(car => car.id === offerId);
 
     if (!carExists) {
       // Оффер не существует - переходим на /cars и сообщаем об ошибке
       console.error('[CommandExecutor] Offer not found:', offerId);
+      console.error('[CommandExecutor] Available car IDs sample:', allCars.slice(0, 5).map(c => c.id));
       window.location.hash = '#/cars';
       // Скролл наверх (оптимизированно - одинарный RAF)
       requestAnimationFrame(() => {
