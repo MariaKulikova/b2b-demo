@@ -113,10 +113,10 @@ class BrowserControlWebSocket {
   handleMessage(data) {
     console.log('[BrowserControl] Received message from server:', data);
 
-    const { type, command, params, payload } = data;
+    const { type, command, params, payload, commandHash } = data;
 
     if (command === 'execute') {
-      console.log('[BrowserControl] Execute command received - payload:', payload, 'params:', params);
+      console.log('[BrowserControl] Execute command received - payload:', payload, 'params:', params, 'commandHash:', commandHash);
     }
 
     // Вызываем зарегистрированные обработчики для данного типа
@@ -128,21 +128,21 @@ class BrowserControlWebSocket {
     // Обработка команд управления браузером
     switch (command) {
       case 'navigate':
-        this.handleNavigate(params);
+        this.handleNavigate(params, commandHash);
         break;
       case 'click':
-        this.handleClick(params);
+        this.handleClick(params, commandHash);
         break;
       case 'fill':
-        this.handleFill(params);
+        this.handleFill(params, commandHash);
         break;
       case 'scroll':
-        this.handleScroll(params);
+        this.handleScroll(params, commandHash);
         break;
       case 'execute':
         // Для execute команд используем payload, который содержит { commandId, params }
         const executePayload = payload || params || {};
-        this.handleExecute(executePayload);
+        this.handleExecute(executePayload, commandHash);
         break;
       default:
         console.log('Unknown command:', command);
@@ -258,13 +258,14 @@ class BrowserControlWebSocket {
    * @param {Object} payload - Параметры команды
    * @param {string} payload.commandId - ID команды для выполнения
    * @param {Object} payload.params - Параметры команды (опционально)
+   * @param {string} commandHash - Уникальный хеш команды для отслеживания
    */
-  async handleExecute({ commandId, params } = {}) {
-    console.log('[BrowserControl] handleExecute called with:', { commandId, params });
+  async handleExecute({ commandId, params } = {}, commandHash) {
+    console.log('[BrowserControl] handleExecute called with:', { commandId, params, commandHash });
 
     if (!commandId) {
       console.error('[BrowserControl] Execute: commandId is required');
-      this.sendAck('execute', false, 'commandId is required');
+      this.sendAck('execute', false, 'commandId is required', null, commandHash);
       return;
     }
 
@@ -281,35 +282,43 @@ class BrowserControlWebSocket {
           action: result.action,
           warning: result.warning,
           results: result.results  // Добавляем результаты фильтрации для агента
-        });
+        }, commandHash);
       } else {
         this.sendAck('execute', false, result.error, {
           commandId,
           params: params || {}
-        });
+        }, commandHash);
       }
     } catch (error) {
       console.error('[BrowserControl] Execute error:', error);
       this.sendAck('execute', false, error.message, {
         commandId,
         params: params || {}
-      });
+      }, commandHash);
     }
   }
 
   /**
    * Отправка подтверждения выполнения команды
+   * @param {string} command - Команда
+   * @param {boolean} success - Успешность выполнения
+   * @param {string} error - Ошибка (если есть)
+   * @param {Object} data - Данные результата
+   * @param {string} commandHash - Уникальный хеш команды
    */
-  sendAck(command, success, error = null, data = null) {
-    this.send({
+  sendAck(command, success, error = null, data = null, commandHash = null) {
+    const ackMessage = {
       type: 'ack',
       command,
       success,
       error,
       data,
       sessionId: this.sessionId,
+      commandHash,
       timestamp: Date.now()
-    });
+    };
+    console.log('[BrowserControl] Sending ack:', ackMessage);
+    this.send(ackMessage);
   }
 
   /**
