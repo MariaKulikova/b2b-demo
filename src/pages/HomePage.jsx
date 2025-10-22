@@ -1,46 +1,21 @@
-import React, { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Star, Shield, Award, Loader2, Search, Mic } from 'lucide-react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Loader2, Mic, Star, Shield, Award } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Select } from '../components/ui/select';
 import CarCard from '../components/CarCard';
 import TestDriveModal from '../components/TestDriveModal';
 import { useCars } from '../context/CarsContext';
+import { useVoiceAssistant } from '../context/VoiceAssistantContext';
 
 const HomePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [makeFilter, setMakeFilter] = useState('');
-  const [modelFilter, setModelFilter] = useState('');
 
-  const navigate = useNavigate();
   const { getHotOffers, getAllCars, loading, error } = useCars();
+  const { openVoiceAssistant } = useVoiceAssistant();
 
   const hotOffers = getHotOffers();
   const allCars = getAllCars();
-
-  const uniqueMakes = useMemo(() =>
-    [...new Set(allCars.map(car => car.make))].sort(),
-    [allCars]
-  );
-
-  const availableModels = useMemo(() =>
-    makeFilter === ''
-      ? [...new Set(allCars.map(car => car.model))].sort()
-      : [...new Set(allCars.filter(car => car.make === makeFilter).map(car => car.model))].sort(),
-    [allCars, makeFilter]
-  );
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const params = new URLSearchParams();
-    if (searchTerm) params.set('search', searchTerm);
-    if (makeFilter) params.set('make', makeFilter);
-    if (modelFilter) params.set('model', modelFilter);
-    navigate(`/cars?${params.toString()}`);
-  };
 
   const handleBookTestDrive = (car) => {
     setSelectedCar(car);
@@ -50,60 +25,46 @@ const HomePage = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative text-white overflow-hidden pb-8">
-        <div className="absolute inset-0 bg-cover bg-left" style={{ backgroundImage: 'url(/assets/Body.jpg)', transform: 'scaleX(-1)' }}></div>
+      <section className="relative text-white overflow-hidden">
+        <div className="absolute inset-0 bg-cover bg-left" style={{ backgroundImage: 'url(/assets/Body.jpg)' }}></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="pt-24 pb-16 text-left">
+          <div className="py-24 text-left">
             <h1 className="text-4xl md:text-6xl font-bold mb-3">
               FIND YOUR DREAM CAR
             </h1>
-            <p className="text-xl md:text-2xl mb-1 text-gray-200">
+            <p className="text-xl md:text-2xl mb-12 text-gray-200">
               Browse our range of quality vehicles in Amsterdam
             </p>
+            <Button size="lg" variant="secondary" onClick={openVoiceAssistant}>
+              <Mic className="mr-2 h-5 w-5" />
+              Help me find a car
+            </Button>
           </div>
         </div>
       </section>
 
-      {/* Button positioned to overlap banner */}
-      <div className="relative -mt-8 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-          <Link to="/cars">
-            <Button size="lg" variant="secondary">
-              <Mic className="mr-2 h-5 w-5" />
-              Help me find a car
-            </Button>
-          </Link>
-        </div>
-      </div>
-
       {/* Features Section */}
-      <section className="py-16">
+      <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gray-50 rounded-2xl shadow-lg p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-brand-dark" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Quality Guaranteed</h3>
-              <p className="text-gray-600">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="relative text-left bg-gray-50 rounded-2xl p-8 overflow-hidden">
+              <Star className="absolute -right-6 -bottom-6 h-48 w-48 text-brand-dark opacity-5" />
+              <h3 className="text-3xl font-semibold mb-2 relative z-10">Quality Guaranteed</h3>
+              <p className="text-gray-600 relative z-10">
                 Every vehicle undergoes thorough inspection and comes with our quality guarantee.
               </p>
             </div>
-            <div className="text-center">
-              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-brand-dark" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Trusted Service</h3>
-              <p className="text-gray-600">
+            <div className="relative text-left bg-gray-50 rounded-2xl p-8 overflow-hidden">
+              <Shield className="absolute -right-6 -bottom-6 h-48 w-48 text-brand-dark opacity-5" />
+              <h3 className="text-3xl font-semibold mb-2 relative z-10">Trusted Service</h3>
+              <p className="text-gray-600 relative z-10">
                 Over 15 years of experience serving Amsterdam with honest, reliable service.
               </p>
             </div>
-            <div className="text-center">
-              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8 text-brand-dark" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Best Prices</h3>
-              <p className="text-gray-600">
+            <div className="relative text-left bg-gray-50 rounded-2xl p-8 overflow-hidden">
+              <Award className="absolute -right-6 -bottom-6 h-48 w-48 text-brand-dark opacity-5" />
+              <h3 className="text-3xl font-semibold mb-2 relative z-10">Best Prices</h3>
+              <p className="text-gray-600 relative z-10">
                 Competitive pricing and flexible financing options to fit your budget.
               </p>
             </div>
@@ -112,7 +73,7 @@ const HomePage = () => {
       </section>
 
       {/* Hot Offers Section */}
-      <section className="py-16">
+      <section className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-left mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -135,7 +96,7 @@ const HomePage = () => {
             </div>
           ) : hotOffers.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {hotOffers.map((car) => (
                   <CarCard
                     key={car.id}
@@ -143,16 +104,30 @@ const HomePage = () => {
                     onBookTestDrive={handleBookTestDrive}
                   />
                 ))}
+                {/* Show button in grid if missing only 1 card in the row (not 2) */}
+                {hotOffers.length % 3 === 2 && (
+                  <Link to="/cars" className="flex items-center justify-center min-h-full">
+                    <Button size="lg" variant="outline" className="w-full h-full min-h-[400px]">
+                      <span className="flex items-center">
+                        View All Cars
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </span>
+                    </Button>
+                  </Link>
+                )}
               </div>
 
-              <div className="text-center">
-                <Link to="/cars">
-                  <Button size="lg" className="bg-brand-dark hover:bg-brand-dark">
-                    View All Cars
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-              </div>
+              {/* Show button centered below grid if missing 2 cards or grid is full */}
+              {hotOffers.length % 3 !== 2 && (
+                <div className="text-center mt-8">
+                  <Link to="/cars">
+                    <Button size="lg" variant="outline">
+                      View All Cars
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </>
           ) : (
             <div className="text-center py-12">
@@ -163,27 +138,24 @@ const HomePage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-gray-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Find Your Perfect Car?
-          </h2>
-          <p className="text-xl text-gray-300 mb-8">
-            Visit our showrooms in Amsterdam or contact us today
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link to="/contact">
-              <Button size="lg" variant="secondary">
-                Contact Us
-              </Button>
-            </Link>
-            <Button
-              size="lg"
-              variant="secondary"
-              onClick={() => window.location.href = 'tel:+447418613962'}
-            >
-              Call Now: +44 7418 613962
-            </Button>
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gray-100 rounded-2xl px-8 py-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="text-left">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
+                Ready to Find Your Perfect Car?
+              </h2>
+              <p className="text-xl text-gray-600">
+                Visit our showrooms in Amsterdam or contact us today
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 md:flex-shrink-0">
+              <Link to="/contact">
+                <Button size="lg" variant="secondary">
+                  Contact Us
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

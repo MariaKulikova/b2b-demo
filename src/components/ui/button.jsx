@@ -17,6 +17,7 @@ const Button = ({
   };
   
   const sizes = {
+    sm: 'py-1.5 px-3 text-sm rounded-md',
     default: 'py-2.5 px-5 rounded-lg',
     lg: 'py-3.5 px-10 text-lg rounded-xl'
   };
