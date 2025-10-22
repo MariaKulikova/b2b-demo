@@ -457,102 +457,52 @@ export class CommandExecutor {
 
   /**
    * Просмотр автомобилей
-   * Параметры: { carDescription: string, carId?: string }
+   * Параметры: { offerId: string }
    */
-  viewCars({ carDescription, carId }) {
-    console.log('[CommandExecutor] Executing view_cars with:', { carDescription, carId });
+  viewCars({ offerId }) {
+    console.log('[CommandExecutor] Executing view_cars with offerId:', offerId);
 
-    // Если передан прямой ID, используем его
-    if (carId) {
-      window.location.hash = `#/car/${carId}`;
+    // Валидация параметра
+    if (!offerId || typeof offerId !== 'string') {
+      console.error('[CommandExecutor] offerId is required');
+      return {
+        success: false,
+        error: 'offerId is required (e.g., "534162-1")'
+      };
+    }
+
+    // Проверяем существование оффера в данных
+    const allCars = window.browserControlAppState?.cars || [];
+    const carExists = allCars.find(car => car.id === offerId);
+
+    if (!carExists) {
+      // Оффер не существует - переходим на /cars и сообщаем об ошибке
+      console.error('[CommandExecutor] Offer not found:', offerId);
+      window.location.hash = '#/cars';
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           window.scrollTo({ top: 0, behavior: 'instant' });
         });
       });
-      console.log(`[CommandExecutor] Navigated to car by ID: ${carId}`);
-      return {
-        success: true,
-        action: `viewing car ${carId}`
-      };
-    }
 
-    // Проверяем наличие описания
-    if (!carDescription || typeof carDescription !== 'string') {
-      console.error('[CommandExecutor] carDescription is required');
       return {
         success: false,
-        error: 'carDescription (e.g., "2023 Hyundai Kona") is required'
+        error: `Offer "${offerId}" does not exist. Showing all available cars instead.`
       };
     }
 
-    // Нормализуем описание для поиска
-    const normalizeString = (str) => str.toLowerCase().trim().replace(/\s+/g, ' ');
-    const normalizedSearch = normalizeString(carDescription);
-
-    // Функция поиска автомобиля по описанию
-    const findCarByDescription = (carsArray) => {
-      if (!Array.isArray(carsArray) || carsArray.length === 0) {
-        return null;
-      }
-
-      // Сначала ищем точное совпадение
-      let found = carsArray.find(car => {
-        const carDesc = normalizeString(`${car.year} ${car.make} ${car.model}`);
-        return carDesc === normalizedSearch;
-      });
-
-      if (found) return found;
-
-      // Затем ищем частичное совпадение (contains)
-      found = carsArray.find(car => {
-        const carDesc = normalizeString(`${car.year} ${car.make} ${car.model}`);
-        return carDesc.includes(normalizedSearch) || normalizedSearch.includes(carDesc);
-      });
-
-      if (found) return found;
-
-      // Пытаемся найти по отдельным частям (год, марка, модель)
-      const searchParts = normalizedSearch.split(' ');
-      found = carsArray.find(car => {
-        const carDesc = normalizeString(`${car.year} ${car.make} ${car.model}`);
-        return searchParts.every(part => carDesc.includes(part));
-      });
-
-      return found;
-    };
-
-    // Сначала ищем в отфильтрованных автомобилях (то, что видит пользователь)
-    const filteredCars = window.currentFilteredCars?.cars || [];
-    let car = findCarByDescription(filteredCars);
-
-    // Если не нашли, ищем во всех автомобилях
-    if (!car) {
-      const allCars = window.browserControlAppState?.cars || [];
-      car = findCarByDescription(allCars);
-    }
-
-    // Если автомобиль не найден
-    if (!car) {
-      console.error('[CommandExecutor] Car not found for description:', carDescription);
-      return {
-        success: false,
-        error: `Car not found for description "${carDescription}". Please check the car details and try again.`
-      };
-    }
-
-    // Переходим на страницу найденного автомобиля
-    window.location.hash = `#/car/${car.id}`;
+    // Оффер существует - переходим на страницу детализации
+    window.location.hash = `#/car/${offerId}`;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         window.scrollTo({ top: 0, behavior: 'instant' });
       });
     });
 
-    console.log(`[CommandExecutor] Navigated to car: ${car.year} ${car.make} ${car.model} (ID: ${car.id})`);
+    console.log(`[CommandExecutor] Navigated to offer: ${offerId}`);
     return {
       success: true,
-      action: `viewing ${car.year} ${car.make} ${car.model}`
+      action: `viewing offer ${offerId}`
     };
   }
 
@@ -686,6 +636,7 @@ export class CommandExecutor {
       allCarsTotal,
       showing,
       cars: formattedCars,
+      visibleOfferIds: cars.map(c => c.id),  // Все видимые offer IDs для использования в view_cars
       priceRange,
       mileageRange
     };

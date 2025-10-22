@@ -247,14 +247,9 @@ function generateViewCarsCommand(cars) {
   return {
     id: 'view_cars',
     params: {
-      carDescription: {
+      offerId: {
         type: 'string',
-        description: 'Car description in format "YEAR MAKE MODEL" (e.g., "2023 Hyundai Kona", "2021 Audi A4"). The command will search for the best matching car in the filtered results.'
-      },
-      carId: {
-        type: 'string',
-        optional: true,
-        description: 'Optional: Direct car ID if known (e.g., "534162-1"). If provided, carDescription is ignored.',
+        description: 'Offer ID to view (e.g., "534162-1"). Must be from visibleOfferIds array received in filter results.',
         enum: cars.map(c => c.id)
       }
     }
