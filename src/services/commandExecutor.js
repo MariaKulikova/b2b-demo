@@ -99,6 +99,12 @@ export class CommandExecutor {
    */
   navigateTo(route) {
     window.location.hash = `#${route}`;
+    // Скроллим наверх после навигации - используем requestAnimationFrame для синхронизации с рендером
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      });
+    });
     return { success: true, action: `navigated to ${route}` };
   }
 
@@ -118,6 +124,12 @@ export class CommandExecutor {
     }
 
     window.location.hash = `#${url}`;
+    // Скроллим наверх после навигации - используем requestAnimationFrame для синхронизации с рендером
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      });
+    });
     return {
       success: true,
       action: carInfo
@@ -423,12 +435,24 @@ export class CommandExecutor {
     if (carIds.length === 1) {
       // Просмотр одного авто
       window.location.hash = `#/car/${carIds[0]}`;
+      // Скроллим наверх после навигации - используем requestAnimationFrame для синхронизации с рендером
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        });
+      });
       return { success: true, action: `viewing car ${carIds[0]}` };
     } else {
       // Несколько авто - можно показать compare или просто перейти на страницу с фильтром
       // Здесь можно реализовать показ нескольких авто, например через compare
       // Пока просто переходим на первое авто
       window.location.hash = `#/car/${carIds[0]}`;
+      // Скроллим наверх после навигации - используем requestAnimationFrame для синхронизации с рендером
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        });
+      });
       return {
         success: true,
         action: `viewing first car ${carIds[0]} (multi-view not implemented yet)`,

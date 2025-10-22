@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useConversation } from '@elevenlabs/react';
-import { Mic, X, Phone, MessageSquare } from 'lucide-react';
+import { Mic, MicOff, X, Phone, MessageSquare } from 'lucide-react';
 import { Button } from './ui/button';
 import { Orb } from './ui/orb';
 import { browserControlWS } from '../services/browserControlWebSocket';
@@ -58,6 +58,7 @@ const VoiceAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]); // Transcript messages
   const [showFullTranscript, setShowFullTranscript] = useState(false); // Modal state
+  const [isMuted, setIsMuted] = useState(false); // Microphone mute state
   const sessionIdRef = useRef(null);
 
   // Получаем данные об автомобилях из контекста
@@ -92,7 +93,7 @@ const VoiceAssistant = () => {
     }
   });
 
-  const { status, isSpeaking } = conversation;
+  const { status, isSpeaking, setInputMuted } = conversation;
 
 
   // Функция для начала разговора
@@ -182,6 +183,16 @@ const VoiceAssistant = () => {
     setOpenHandler(handleOpen);
   }, [handleOpen, setOpenHandler]);
 
+  // Toggle функция для mute/unmute микрофона
+  const toggleMute = useCallback(() => {
+    if (setInputMuted) {
+      const newMutedState = !isMuted;
+      setInputMuted(newMutedState);
+      setIsMuted(newMutedState);
+      console.log(`[VoiceAssistant] Microphone ${newMutedState ? 'muted' : 'unmuted'}`);
+    }
+  }, [isMuted, setInputMuted]);
+
   // Получение текста статуса
   const getStatusText = () => {
     switch (status) {
@@ -190,6 +201,7 @@ const VoiceAssistant = () => {
       case 'connecting':
         return 'Connecting...';
       case 'connected':
+        if (isMuted) return 'Microphone muted';
         return isSpeaking ? 'AI is speaking...' : 'Listening...';
       default:
         return 'Ready';
@@ -198,6 +210,7 @@ const VoiceAssistant = () => {
 
   // Получение цвета орба в зависимости от статуса
   const getOrbColor = () => {
+    if (isMuted) return '#ef4444'; // Красный когда микрофон замучен
     if (isSpeaking) return '#3b82f6'; // Ярко-синий когда говорит
     if (status === 'connected') return '#2563eb'; // Синий когда подключен
     return '#64748b'; // Серый когда отключен
@@ -268,6 +281,24 @@ const VoiceAssistant = () => {
                 <div className="hidden md:block px-2 py-1 bg-gray-100 rounded text-xs text-gray-500 font-mono">
                   {sessionIdRef.current.substring(0, 8)}
                 </div>
+              )}
+
+              {/* Кнопка mute/unmute микрофона */}
+              {status === 'connected' && (
+                <Button
+                  onClick={toggleMute}
+                  size="sm"
+                  variant="outline"
+                  className={`px-2 sm:px-2.5 ${isMuted ? 'bg-red-50 hover:bg-red-100 border-red-300' : ''}`}
+                  aria-label={isMuted ? 'Unmute microphone' : 'Mute microphone'}
+                  title={isMuted ? 'Unmute microphone' : 'Mute microphone'}
+                >
+                  {isMuted ? (
+                    <MicOff className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600" />
+                  ) : (
+                    <Mic className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  )}
+                </Button>
               )}
 
               {/* Кнопка транскрипта */}
