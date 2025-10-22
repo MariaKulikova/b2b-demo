@@ -457,40 +457,103 @@ export class CommandExecutor {
 
   /**
    * Просмотр автомобилей
-   * Параметры: { carIds: [1, 2, 3, ...] }
+   * Параметры: { carDescription: string, carId?: string }
    */
-  viewCars({ carIds }) {
-    if (!carIds || !Array.isArray(carIds) || carIds.length === 0) {
-      return { success: false, error: 'carIds array is required and must not be empty' };
-    }
+  viewCars({ carDescription, carId }) {
+    console.log('[CommandExecutor] Executing view_cars with:', { carDescription, carId });
 
-    if (carIds.length === 1) {
-      // Просмотр одного авто
-      window.location.hash = `#/car/${carIds[0]}`;
-      // Скроллим наверх после навигации - используем requestAnimationFrame для синхронизации с рендером
+    // Если передан прямой ID, используем его
+    if (carId) {
+      window.location.hash = `#/car/${carId}`;
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           window.scrollTo({ top: 0, behavior: 'instant' });
         });
       });
-      return { success: true, action: `viewing car ${carIds[0]}` };
-    } else {
-      // Несколько авто - можно показать compare или просто перейти на страницу с фильтром
-      // Здесь можно реализовать показ нескольких авто, например через compare
-      // Пока просто переходим на первое авто
-      window.location.hash = `#/car/${carIds[0]}`;
-      // Скроллим наверх после навигации - используем requestAnimationFrame для синхронизации с рендером
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          window.scrollTo({ top: 0, behavior: 'instant' });
-        });
-      });
+      console.log(`[CommandExecutor] Navigated to car by ID: ${carId}`);
       return {
         success: true,
-        action: `viewing first car ${carIds[0]} (multi-view not implemented yet)`,
-        warning: `Requested ${carIds.length} cars, showing first one`
+        action: `viewing car ${carId}`
       };
     }
+
+    // Проверяем наличие описания
+    if (!carDescription || typeof carDescription !== 'string') {
+      console.error('[CommandExecutor] carDescription is required');
+      return {
+        success: false,
+        error: 'carDescription (e.g., "2023 Hyundai Kona") is required'
+      };
+    }
+
+    // Нормализуем описание для поиска
+    const normalizeString = (str) => str.toLowerCase().trim().replace(/\s+/g, ' ');
+    const normalizedSearch = normalizeString(carDescription);
+
+    // Функция поиска автомобиля по описанию
+    const findCarByDescription = (carsArray) => {
+      if (!Array.isArray(carsArray) || carsArray.length === 0) {
+        return null;
+      }
+
+      // Сначала ищем точное совпадение
+      let found = carsArray.find(car => {
+        const carDesc = normalizeString(`${car.year} ${car.make} ${car.model}`);
+        return carDesc === normalizedSearch;
+      });
+
+      if (found) return found;
+
+      // Затем ищем частичное совпадение (contains)
+      found = carsArray.find(car => {
+        const carDesc = normalizeString(`${car.year} ${car.make} ${car.model}`);
+        return carDesc.includes(normalizedSearch) || normalizedSearch.includes(carDesc);
+      });
+
+      if (found) return found;
+
+      // Пытаемся найти по отдельным частям (год, марка, модель)
+      const searchParts = normalizedSearch.split(' ');
+      found = carsArray.find(car => {
+        const carDesc = normalizeString(`${car.year} ${car.make} ${car.model}`);
+        return searchParts.every(part => carDesc.includes(part));
+      });
+
+      return found;
+    };
+
+    // Сначала ищем в отфильтрованных автомобилях (то, что видит пользователь)
+    const filteredCars = window.currentFilteredCars?.cars || [];
+    let car = findCarByDescription(filteredCars);
+
+    // Если не нашли, ищем во всех автомобилях
+    if (!car) {
+      const allCars = window.browserControlAppState?.cars || [];
+      car = findCarByDescription(allCars);
+    }
+
+    // Если автомобиль не найден
+    if (!car) {
+      console.error('[CommandExecutor] Car not found for description:', carDescription);
+      return {
+        success: false,
+        error: `Car not found for description "${carDescription}". Please check the car details and try again.`
+      };
+    }
+
+    // Переходим на страницу найденного автомобиля
+    window.location.hash = `#/car/${car.id}`;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      });
+    });
+
+    console.log(`[CommandExecutor] Navigated to car: ${car.year} ${car.make} ${car.model} (ID: ${car.id})`);
+    return {
+      success: true,
+      action: `viewing ${car.year} ${car.make} ${car.model}`
+    };
   }
 
   /**
