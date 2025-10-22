@@ -230,6 +230,11 @@ export class CommandExecutor {
     // Range фильтры которые работают напрямую через URL (без DOM элементов)
     const urlRangeFilters = ['price', 'mileage', 'year'];
 
+    // Получаем текущие параметры из URL для batch обновления
+    const hash = window.location.hash;
+    const [path, queryString] = hash.split('?');
+    const urlParams = new URLSearchParams(queryString || '');
+
     Object.entries(filters).forEach(([filterType, value]) => {
       console.log(`[CommandExecutor] Processing filter: ${filterType}`, value);
       console.log(`[CommandExecutor] Value type: ${typeof value}, isArray: ${Array.isArray(value)}`);
@@ -253,14 +258,14 @@ export class CommandExecutor {
 
           console.log(`[CommandExecutor] Found element for ${filterType}:`, element);
           console.log(`[CommandExecutor] Applying values filter for ${filterType}:`, value);
-          this.applyValuesFilter(element, value, filterType);
+          this.applyValuesFilter(element, value, filterType, urlParams);
           appliedFilters.push(`${filterType}: ${value.join(', ')}`);
         } else if (typeof value === 'object' && (value.min !== undefined || value.max !== undefined)) {
           // Численный range фильтр
           if (urlRangeFilters.includes(filterType)) {
             // Range фильтры работают напрямую с URL, не требуют DOM элемента
             console.log(`[CommandExecutor] Applying URL range filter for ${filterType}:`, value);
-            this.applyRangeFilter(null, filterType, value);
+            this.applyRangeFilter(null, filterType, value, urlParams);
             appliedFilters.push(`${filterType}: ${value.min || 'any'} - ${value.max || 'any'}`);
           } else {
             // Другие range фильтры используют DOM элементы
@@ -280,7 +285,7 @@ export class CommandExecutor {
 
             console.log(`[CommandExecutor] Found element for ${filterType}:`, element);
             console.log(`[CommandExecutor] Applying range filter for ${filterType}:`, value);
-            this.applyRangeFilter(element, filterType, value);
+            this.applyRangeFilter(element, filterType, value, urlParams);
             appliedFilters.push(`${filterType}: ${value.min || 'any'} - ${value.max || 'any'}`);
           }
         } else {
@@ -291,6 +296,11 @@ export class CommandExecutor {
         errors.push(`Error applying ${filterType}: ${error.message}`);
       }
     });
+
+    // Batch обновление URL - делаем один раз в конце
+    const newHash = urlParams.toString() ? `${path}?${urlParams.toString()}` : path;
+    console.log(`[CommandExecutor] Batch updating URL hash: ${newHash}`);
+    window.location.hash = newHash;
 
     if (errors.length > 0) {
       // Даже при ошибках читаем результаты, если хотя бы часть фильтров применилась
@@ -333,27 +343,41 @@ export class CommandExecutor {
   /**
    * Применение фильтра с массивом значений (для select)
    * Теперь поддерживает множественные значения через URL параметры
+   * @param {HTMLElement} element - DOM элемент фильтра
+   * @param {Array} values - Значения для установки
+   * @param {string} filterType - Тип фильтра
+   * @param {URLSearchParams} urlParams - Опциональный объект для batch обновления URL
    */
-  applyValuesFilter(element, values, filterType) {
+  applyValuesFilter(element, values, filterType, urlParams = null) {
     console.log(`[CommandExecutor] applyValuesFilter: filterType=${filterType}, values=`, values);
 
-    // Для категориальных фильтров (make, bodyType, fuelType, transmission)
+    // Для категориальных фильтров (make, model, bodyType, fuelType, transmission)
     // устанавливаем множественные значения через URL параметры
-    const categoricalFilters = ['make', 'bodyType', 'fuelType', 'transmission'];
+    const categoricalFilters = ['make', 'model', 'bodyType', 'fuelType', 'transmission'];
 
     if (categoricalFilters.includes(filterType) && values.length > 0) {
-      // Получаем текущие параметры из URL
-      const hash = window.location.hash;
-      const [path, queryString] = hash.split('?');
-      const params = new URLSearchParams(queryString || '');
+      // Используем переданный urlParams или создаем новый
+      let params = urlParams;
+      let shouldUpdateHash = false;
+
+      if (!params) {
+        const hash = window.location.hash;
+        const [path, queryString] = hash.split('?');
+        params = new URLSearchParams(queryString || '');
+        shouldUpdateHash = true;
+      }
 
       // Устанавливаем значения через запятую (например: "BMW,Audi")
       params.set(filterType, values.join(','));
+      console.log(`[CommandExecutor] Setting ${filterType} to URL params: ${values.join(',')}`);
 
-      // Обновляем URL
-      const newHash = params.toString() ? `${path}?${params.toString()}` : path;
-      console.log(`[CommandExecutor] Setting ${filterType} to URL: ${values.join(',')}`);
-      window.location.hash = newHash;
+      // Обновляем URL только если не используем batch mode
+      if (shouldUpdateHash) {
+        const hash = window.location.hash;
+        const [path] = hash.split('?');
+        const newHash = params.toString() ? `${path}?${params.toString()}` : path;
+        window.location.hash = newHash;
+      }
       return;
     }
 
@@ -380,19 +404,23 @@ export class CommandExecutor {
    * Применение range фильтра (min/max)
    * Работает напрямую с URL параметрами, т.к. RangeSlider - кастомный компонент без input элементов
    * @param {HTMLElement|null} _element - Не используется для price/mileage (работа через URL)
-   * @param {string} filterType - Тип фильтра (price, mileage)
-   * @param {Object} params - Параметры min/max
+   * @param {string} filterType - Тип фильтра (price, mileage, year)
+   * @param {Object} rangeParams - Параметры min/max
+   * @param {URLSearchParams} urlParams - Опциональный объект для batch обновления URL
    */
-  applyRangeFilter(_element, filterType, { min, max }) {
+  applyRangeFilter(_element, filterType, { min, max }, urlParams = null) {
     console.log(`[CommandExecutor] applyRangeFilter: filterType=${filterType}, min=${min}, max=${max}`);
 
-    // Получаем текущие параметры из URL
-    const hash = window.location.hash;
-    const [path, queryString] = hash.split('?');
-    const params = new URLSearchParams(queryString || '');
+    // Используем переданный urlParams или создаем новый
+    let params = urlParams;
+    let shouldUpdateHash = false;
 
-    console.log(`[CommandExecutor] Current URL: ${hash}`);
-    console.log(`[CommandExecutor] Current params:`, Array.from(params.entries()));
+    if (!params) {
+      const hash = window.location.hash;
+      const [path, queryString] = hash.split('?');
+      params = new URLSearchParams(queryString || '');
+      shouldUpdateHash = true;
+    }
 
     // Маппинг типов фильтров на параметры URL
     const paramMapping = {
@@ -417,10 +445,14 @@ export class CommandExecutor {
       console.log(`[CommandExecutor] Set ${mapping.max} = ${max}`);
     }
 
-    // Обновляем URL
-    const newHash = params.toString() ? `${path}?${params.toString()}` : path;
-    console.log(`[CommandExecutor] New URL hash: ${newHash}`);
-    window.location.hash = newHash;
+    // Обновляем URL только если не используем batch mode
+    if (shouldUpdateHash) {
+      const hash = window.location.hash;
+      const [path] = hash.split('?');
+      const newHash = params.toString() ? `${path}?${params.toString()}` : path;
+      console.log(`[CommandExecutor] New URL hash: ${newHash}`);
+      window.location.hash = newHash;
+    }
   }
 
   /**
