@@ -71,11 +71,21 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-gray-300" />
-                <span className="text-gray-300">+44 7418 613962</span>
+                <a href="tel:+447418613962" className="text-gray-300 hover:text-white transition-colors cursor-pointer">
+                  +44 7418 613962
+                </a>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-gray-300" />
-                <span className="text-gray-300">info@shiftgears.ai</span>
+                <a
+                  href="mailto:info@shiftgears.ai"
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                  onClick={(e) => {
+                    window.location.href = 'mailto:info@shiftgears.ai';
+                  }}
+                >
+                  info@shiftgears.ai
+                </a>
               </div>
               <div className="flex items-start space-x-2">
                 <Clock className="h-4 w-4 text-gray-300 mt-1" />

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { CarsProvider } from './context/CarsContext';
+import { VoiceAssistantProvider } from './context/VoiceAssistantContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import VoiceAssistant from './components/VoiceAssistant';
@@ -53,7 +54,9 @@ function App() {
   return (
     <Router>
       <CarsProvider>
-        <AppContent />
+        <VoiceAssistantProvider>
+          <AppContent />
+        </VoiceAssistantProvider>
       </CarsProvider>
     </Router>
   );

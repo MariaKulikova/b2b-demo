@@ -40,34 +40,33 @@ const AboutPage = () => {
               </p>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Why Choose Cool Cars?</h3>
+          <div className="bg-white rounded-2xl shadow-md p-10">
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
                 <Shield className="h-6 w-6 text-blue-600 mt-1" />
                 <div>
-                  <h4 className="font-semibold text-gray-900">Quality Guarantee</h4>
+                  <h4 className="text-xl font-semibold text-gray-900">Quality Guarantee</h4>
                   <p className="text-gray-600">Every car undergoes comprehensive inspection</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
                 <Award className="h-6 w-6 text-blue-600 mt-1" />
                 <div>
-                  <h4 className="font-semibold text-gray-900">15+ Years Experience</h4>
+                  <h4 className="text-xl font-semibold text-gray-900">15+ Years Experience</h4>
                   <p className="text-gray-600">Trusted expertise in the Amsterdam market</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
                 <Heart className="h-6 w-6 text-blue-600 mt-1" />
                 <div>
-                  <h4 className="font-semibold text-gray-900">Customer First</h4>
+                  <h4 className="text-xl font-semibold text-gray-900">Customer First</h4>
                   <p className="text-gray-600">Your satisfaction is our top priority</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
                 <Users className="h-6 w-6 text-blue-600 mt-1" />
                 <div>
-                  <h4 className="font-semibold text-gray-900">Expert Team</h4>
+                  <h4 className="text-xl font-semibold text-gray-900">Expert Team</h4>
                   <p className="text-gray-600">Knowledgeable staff ready to help</p>
                 </div>
               </div>
@@ -110,7 +109,7 @@ const AboutPage = () => {
         </div>
 
         {/* Team Section */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-16">
+        <div className="bg-white rounded-2xl shadow-md p-10 mb-16">
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">Meet Our Team</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="text-center">

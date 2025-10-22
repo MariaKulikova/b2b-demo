@@ -152,7 +152,7 @@ const CarsPage = () => {
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
+        <div className="bg-white p-8 rounded-2xl shadow-md mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {/* Search */}
             <div className="lg:col-span-4">

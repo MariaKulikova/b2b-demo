@@ -2,7 +2,7 @@ import React from 'react';
 
 const Card = ({ className = '', ...props }) => (
   <div
-    className={`rounded-lg bg-white text-gray-950 shadow-lg ${className}`}
+    className={`rounded-2xl bg-white text-gray-950 shadow-md ${className}`}
     {...props}
   />
 );
