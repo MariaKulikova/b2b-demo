@@ -259,7 +259,7 @@ class BrowserControlWebSocket {
    * @param {string} payload.commandId - ID команды для выполнения
    * @param {Object} payload.params - Параметры команды (опционально)
    */
-  handleExecute({ commandId, params } = {}) {
+  async handleExecute({ commandId, params } = {}) {
     console.log('[BrowserControl] handleExecute called with:', { commandId, params });
 
     if (!commandId) {
@@ -271,15 +271,16 @@ class BrowserControlWebSocket {
     console.log(`[BrowserControl] Executing parameterized command: ${commandId}`, params || {});
 
     try {
-      // Выполняем команду через централизованный executor
-      const result = commandExecutor.execute(commandId, params);
+      // Выполняем команду через централизованный executor (может быть async)
+      const result = await commandExecutor.execute(commandId, params);
 
       if (result.success) {
         this.sendAck('execute', true, null, {
           commandId,
           params: params || {},
           action: result.action,
-          warning: result.warning
+          warning: result.warning,
+          results: result.results  // Добавляем результаты фильтрации для агента
         });
       } else {
         this.sendAck('execute', false, result.error, {

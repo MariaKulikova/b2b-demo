@@ -143,7 +143,18 @@ export class CommandExecutor {
       // Range фильтры работают напрямую с URL, не требуют DOM элемента
       console.log(`[CommandExecutor] Applying URL range filter for ${filterType}:`, { min, max });
       this.applyRangeFilter(null, filterType, { min, max });
-      return { success: true, action: `applied ${filterType} range filter (min: ${min}, max: ${max})` };
+
+      // Читаем результаты после применения фильтра
+      return new Promise(resolve => {
+        requestAnimationFrame(() => {
+          const results = this.getFilteredResults();
+          resolve({
+            success: true,
+            action: `applied ${filterType} range filter (min: ${min}, max: ${max})`,
+            results
+          });
+        });
+      });
     }
 
     // Для остальных фильтров проверяем наличие DOM элемента
@@ -160,13 +171,31 @@ export class CommandExecutor {
     // Для категориальных фильтров (select/multi-select)
     if (values) {
       this.applyValuesFilter(element, values, filterType);
-      return { success: true, action: `applied ${filterType} filter with values: ${values.join(', ')}` };
+      return new Promise(resolve => {
+        requestAnimationFrame(() => {
+          const results = this.getFilteredResults();
+          resolve({
+            success: true,
+            action: `applied ${filterType} filter with values: ${values.join(', ')}`,
+            results
+          });
+        });
+      });
     }
 
     // Для других численных фильтров (не price/mileage) с DOM элементами
     if (min !== undefined || max !== undefined) {
       this.applyRangeFilter(element, filterType, { min, max });
-      return { success: true, action: `applied ${filterType} range filter (min: ${min}, max: ${max})` };
+      return new Promise(resolve => {
+        requestAnimationFrame(() => {
+          const results = this.getFilteredResults();
+          resolve({
+            success: true,
+            action: `applied ${filterType} range filter (min: ${min}, max: ${max})`,
+            results
+          });
+        });
+      });
     }
 
     return { success: false, error: 'Either values or min/max must be provided' };
@@ -176,7 +205,7 @@ export class CommandExecutor {
    * Установка множественных фильтров
    * Параметры: { filters: { make: [...], price: { min, max }, ... } }
    */
-  async setMultipleFilters({ filters }) {
+  setMultipleFilters({ filters }) {
     console.log('[CommandExecutor] setMultipleFilters called with:', filters);
 
     if (!filters || typeof filters !== 'object') {
@@ -253,24 +282,40 @@ export class CommandExecutor {
 
     if (errors.length > 0) {
       // Даже при ошибках читаем результаты, если хотя бы часть фильтров применилась
-      const results = appliedFilters.length > 0 ? await this.waitAndGetFilteredResults() : null;
-
-      return {
-        success: appliedFilters.length > 0,
-        action: `partially applied filters: ${appliedFilters.join('; ')}`,
-        error: errors.join('; '),
-        results
-      };
+      if (appliedFilters.length > 0) {
+        return new Promise(resolve => {
+          requestAnimationFrame(() => {
+            const results = this.getFilteredResults();
+            resolve({
+              success: true,
+              action: `partially applied filters: ${appliedFilters.join('; ')}`,
+              error: errors.join('; '),
+              results
+            });
+          });
+        });
+      } else {
+        return {
+          success: false,
+          action: `partially applied filters: ${appliedFilters.join('; ')}`,
+          error: errors.join('; '),
+          results: null
+        };
+      }
     }
 
-    // Ждем обновления React и читаем результаты
-    const results = await this.waitAndGetFilteredResults();
-
-    return {
-      success: true,
-      action: `applied filters: ${appliedFilters.join('; ')}`,
-      results
-    };
+    // Читаем результаты синхронно после изменения URL
+    // requestAnimationFrame даст React возможность обновиться
+    return new Promise(resolve => {
+      requestAnimationFrame(() => {
+        const results = this.getFilteredResults();
+        resolve({
+          success: true,
+          action: `applied filters: ${appliedFilters.join('; ')}`,
+          results
+        });
+      });
+    });
   }
 
   /**
@@ -402,12 +447,22 @@ export class CommandExecutor {
       const clearBtn = document.querySelector('#car-clear-filters-btn');
       if (clearBtn) {
         clearBtn.click();
-        return { success: true, action: 'cleared all filters' };
       } else {
         // Если нет кнопки, очищаем все фильтры вручную
         this.clearAllFiltersManually();
-        return { success: true, action: 'cleared all filters manually' };
       }
+
+      // Читаем результаты после очистки
+      return new Promise(resolve => {
+        requestAnimationFrame(() => {
+          const results = this.getFilteredResults();
+          resolve({
+            success: true,
+            action: 'cleared all filters',
+            results
+          });
+        });
+      });
     }
 
     // Очищаем конкретные фильтры
@@ -424,10 +479,17 @@ export class CommandExecutor {
       }
     });
 
-    return {
-      success: true,
-      action: `cleared filters: ${clearedFilters.join(', ')}`
-    };
+    // Читаем результаты после очистки
+    return new Promise(resolve => {
+      requestAnimationFrame(() => {
+        const results = this.getFilteredResults();
+        resolve({
+          success: true,
+          action: `cleared filters: ${clearedFilters.join(', ')}`,
+          results
+        });
+      });
+    });
   }
 
   /**
@@ -469,13 +531,11 @@ export class CommandExecutor {
   }
 
   /**
-   * Ждем обновления React и читаем отфильтрованные результаты
-   * @returns {Promise<Object>} Результаты фильтрации
+   * Читаем отфильтрованные результаты из window
+   * @returns {Object|null} Результаты фильтрации
    */
-  async waitAndGetFilteredResults() {
-    // Ждем чтобы React обновил состояние и экспортировал результаты
-    await new Promise(resolve => setTimeout(resolve, 300));
-
+  getFilteredResults() {
+    console.log('[CommandExecutor] getFilteredResults called');
     const filteredData = window.currentFilteredCars;
 
     if (!filteredData || !Array.isArray(filteredData.cars)) {
@@ -484,6 +544,7 @@ export class CommandExecutor {
     }
 
     const { cars, total, allCarsTotal } = filteredData;
+    console.log(`[CommandExecutor] Reading filtered results: ${total} cars (showing ${Math.min(10, cars.length)})`);
 
     // Форматируем первые 10 машин для агента
     const showing = Math.min(10, cars.length);
