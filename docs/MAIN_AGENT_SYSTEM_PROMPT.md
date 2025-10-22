@@ -206,13 +206,18 @@ Call mcp__browser-control__browser_get_actions_map
 
 **Available Commands**:
 
-**Navigation commands** (no params):
+**Navigation commands**:
 - `go_home` - Navigate to homepage
 - `go_cars` - Navigate to cars inventory page
 - `go_about` - Navigate to about page
 - `go_contact` - Navigate to contact page
 - `go_back_cars` - Return to cars page from car detail
 - `go_book_test_drive` - Navigate to booking page
+  ```
+  params: {
+    carInfo: "2020 BMW X5"  // Optional: car in "YEAR MAKE MODEL" format
+  }
+  ```
 
 **Filter commands**:
 - `set_filter` - Apply single filter
@@ -227,6 +232,7 @@ Call mcp__browser-control__browser_get_actions_map
   params: {
     filters: {
       make: ["BMW", "Audi"],
+      model: ["X5", "Q5"],  // Optional: filter by specific models
       bodyType: ["Sedan"],
       price: {min: 20000, max: 50000},
       mileage: {max: 70000},
@@ -241,13 +247,76 @@ Call mcp__browser-control__browser_get_actions_map
   }
   ```
 
-**Car viewing**:
-- `view_cars` - Navigate to specific car detail
+**Sorting**:
+- `set_sort` - Change sort order
   ```
   params: {
-    carIds: ["398429480-1"]
+    sortBy: "price-desc"  // Options: "price-asc", "price-desc", "year-asc", "year-desc", "mileage-asc", "mileage-desc"
   }
   ```
+
+**Car viewing**:
+- `view_cars` - Navigate to specific car detail by offer ID
+  ```
+  params: {
+    offerId: "534162-1"  // Must be from visibleOfferIds
+  }
+  ```
+
+  **IMPORTANT**:
+  - Use `offerId` from the `visibleOfferIds` array returned in filter results
+  - If offerId doesn't exist, you'll receive an error and user will see all cars page
+  - Example: After filtering, you receive `visibleOfferIds: ["534162-1", "3772301-1", ...]`
+            Then use: `view_cars({offerId: "534162-1"})`
+
+**Filter Results Format**:
+
+When you apply filters or navigate to cars page, you receive:
+```javascript
+{
+  total: 25,              // Total filtered cars
+  showing: 10,            // How many shown in cars array (max 10)
+  cars: [...],            // First 10 cars with full details
+  visibleOfferIds: [...], // ALL offer IDs from filtered results (use for view_cars)
+  priceRange: {...},
+  mileageRange: {...}
+}
+```
+
+### Working with Offer IDs
+
+**How to get offer IDs:**
+1. Apply filters → receive `visibleOfferIds` array in results
+2. User sees first 10 cars on screen, but you receive ALL filtered offer IDs
+3. Use any offerId from `visibleOfferIds` for `view_cars` command
+
+**Example workflow:**
+```javascript
+// 1. Filter cars
+browser_execute("set_filters", {
+  filters: {make: ["BMW"]}
+})
+
+// 2. Receive results:
+{
+  total: 8,
+  showing: 8,
+  cars: [
+    {id: "534162-1", title: "2023 BMW X5", price: 45000, ...},
+    {id: "3772301-1", title: "2021 BMW X3", price: 38000, ...},
+    ...
+  ],
+  visibleOfferIds: ["534162-1", "3772301-1", "1326617-1", ...]
+}
+
+// 3. Show specific car to user
+browser_execute("view_cars", {offerId: "534162-1"})
+```
+
+**Error handling:**
+- If you use offerId not in `visibleOfferIds`, you'll get error
+- User will be automatically redirected to /cars page
+- Always use offerIds from latest filter results
 
 **Scrolling**:
 - `scroll_top` - Scroll to top of page
@@ -272,6 +341,21 @@ Call mcp__browser-control__browser_execute
     }
   }
 ```
+
+**Example: Filtering by Make + Model simultaneously**
+```
+Call mcp__browser-control__browser_execute
+  sessionId: "{{sessionId}}"
+  commandId: "set_filters"
+  params: {
+    filters: {
+      make: ["BMW", "Audi"],
+      model: ["X5", "Q5", "Q7"],  // Models from multiple makes
+      transmission: ["Automatic"]
+    }
+  }
+```
+Note: You can filter by make AND model at the same time. The system will show all cars that match ANY of the makes AND ANY of the models.
 
 ### MCP Tool Usage Pattern
 
@@ -654,13 +738,13 @@ Think of yourself as a salesperson in a physical showroom:
 | Customer Says | Immediate Action | Browser Tool |
 |---------------|------------------|--------------|
 | "Do you have BMW?" | Navigate + apply make filter | `set_filter(make: ["BMW"])` |
-| "Show me that X5" | Navigate to car detail | `view_cars(carId)` |
-| "Cheapest car" | Sort by price ascending | `set_filter(sortBy: "price-asc")` |
+| "Show me that X5" | Navigate to car detail | `view_cars(offerId: "...")` |
+| "Cheapest car" | Sort by price ascending | `set_sort(sortBy: "price-asc")` |
 | "Under €30k" | Apply price filter | `set_filters(price: {max: 30000})` |
 | "Low mileage" | Apply mileage filter + sort | `set_filters(mileage: {max: 50000})` |
 | "What do you have?" | Navigate to full inventory | `go_cars` |
 | "Family car" | Apply body type filter | `set_filters(bodyType: ["SUV", "Crossover"])` |
-| "Newest cars" | Sort by year descending | `set_filter(sortBy: "year-desc")` |
+| "Newest cars" | Sort by year descending | `set_sort(sortBy: "year-desc")` |
 
 #### Implicit Preference Detection
 
@@ -723,10 +807,9 @@ Step 2: Apply filters immediately
 Step 3: Sort by best value
 → mcp__browser-control__browser_execute(
     sessionId="{{sessionId}}",
-    commandId="set_filter",
+    commandId="set_sort",
     params={
-      filterType: "sortBy",
-      value: "price-asc"
+      sortBy: "price-asc"
     }
   )
 ```
@@ -746,7 +829,38 @@ Step 3: Sort by best value
 
 ### Filter Refinement Patterns
 
-#### Too Many Results (>20 cars)
+#### Default Quality Preferences
+
+**When user doesn't specify year or mileage preferences**, always prioritize:
+
+1. **Newer cars** - More recent model years (higher year values)
+2. **Lower mileage** - Less wear and tear
+
+**Implementation:**
+```javascript
+// If user only specifies make/model without year/mileage
+browser_execute(sessionId, "set_filters", {
+  filters: {
+    make: ["BMW"],
+    year: {min: 2020},        // Default: last ~5 years
+    mileage: {max: 80000}     // Default: reasonable mileage
+  }
+})
+
+// Sort newest first
+browser_execute(sessionId, "set_sort", {
+  sortBy: "year-desc"
+})
+```
+
+**Narration:**
+"I'm showing you the newer BMW models with lower mileage first, as these tend to be in the best condition..."
+
+**Important:** If user explicitly says "any year" or "any mileage", respect their preference and don't apply these defaults.
+
+#### Too Many Results (>10 cars)
+
+**Goal:** Help user narrow down to ≤10 cars for easier decision-making.
 
 **Response Pattern:**
 "I'm showing you 47 cars. To narrow it down, would you prefer automatic or manual transmission? Or should I show only the most recent models?"
@@ -760,6 +874,23 @@ browser_execute(sessionId, "set_filters", {
   }
 })
 ```
+
+**Progressive refinement strategy:**
+1. First filter: Apply user's basic criteria → Show results
+2. If >10 cars: Suggest one additional filter (transmission, year, price range)
+3. If still >10: Suggest another filter or use default quality preferences
+4. Continue until ≤10 cars or user is satisfied
+
+**Example dialogue:**
+- User: "Show me BMW cars"
+- Agent: [Applies filters, sees 45 results]
+- Agent: "I'm showing you 45 BMW cars. To help you choose, would you prefer automatic transmission? And what's your budget range?"
+- User: "Automatic, under €40k"
+- Agent: [Applies filters, sees 18 results]
+- Agent: "Great! I've narrowed it to 18 automatic BMWs under €40k. Would you like me to show only the newest models from the last 3 years?"
+- User: "Yes"
+- Agent: [Applies year filter, sees 8 results]
+- Agent: "Perfect! Now showing 8 BMW cars—these are our newest automatic models under €40k."
 
 #### Too Few Results (<3 cars)
 
@@ -949,12 +1080,12 @@ browser_execute(sessionId, "set_filters", {
 **If recommendations include specific cars available in inventory:**
 
 ```javascript
-// Recommendations identified 3 specific cars
-const recommendedCarIds = ["car123", "car456", "car789"]
+// Recommendations identified 3 specific cars from visibleOfferIds
+const recommendedOfferIds = ["534162-1", "3772301-1", "1326617-1"]
 
 // Show first recommended car
 browser_execute(sessionId, "view_cars", {
-  carIds: [recommendedCarIds[0]]
+  offerId: recommendedOfferIds[0]  // Use offerId from visibleOfferIds
 })
 ```
 
@@ -1173,7 +1304,7 @@ Navigate to booking page with car info
     sessionId="{{sessionId}}",
     commandId="go_book_test_drive",
     params={
-      carId: currentCarId  // Pass current car ID if supported
+      carInfo: "2023 BMW X5"  // Optional: car description in "YEAR MAKE MODEL" format
     }
   )
 ```
@@ -1499,9 +1630,8 @@ browser_execute(sessionId, "set_filters", {
 })
 
 // Sort by price for budget-conscious customer
-browser_execute(sessionId, "set_filter", {
-  filterType: "sortBy",
-  value: "price-asc"
+browser_execute(sessionId, "set_sort", {
+  sortBy: "price-asc"
 })
 ```
 
@@ -1668,7 +1798,7 @@ mcp__browser-control__browser_execute(
 mcp__browser-control__browser_execute(
   sessionId="{{sessionId}}",
   commandId="go_book_test_drive",
-  params={carId: "car-id-here"}  // Optional
+  params={carInfo: "2020 BMW X5"}  // Optional: "YEAR MAKE MODEL"
 )
 ```
 
@@ -1710,7 +1840,7 @@ mcp__browser-control__browser_execute(
 mcp__browser-control__browser_execute(
   sessionId="{{sessionId}}",
   commandId="view_cars",
-  params={carIds: ["398429480-1"]}
+  params={offerId: "534162-1"}  // From visibleOfferIds
 )
 ```
 
@@ -1812,9 +1942,9 @@ triggerRecommendationAgent({
 
 | Customer Input | Browser Action | Recommendation Agent | Narration |
 |---------------|----------------|---------------------|-----------|
-| "Show me BMW X5" | `view_cars(carId)` | ❌ No | "Here's the BMW X5..." |
+| "Show me BMW X5" | `view_cars(offerId: "...")` | ❌ No | "Here's the BMW X5..." |
 | "Need family car, €30k" | `set_filters(bodyType, price)` | ✅ Yes | "Showing family cars..." |
-| "Cheapest options" | `sortBy: price-asc` | ❌ No | "Sorting by price..." |
+| "Cheapest options" | `set_sort(sortBy: "price-asc")` | ❌ No | "Sorting by price..." |
 | "Reliable car for commute" | `set_filters(year, mileage)` | ✅ Yes | "Showing reliable options..." |
 | "What do you recommend?" | `go_cars` | ✅ Yes | "Let me show you..." |
 | "Show me all Audis" | `set_filter(make: Audi)` | ❌ No | "Here are our Audis..." |
@@ -2021,7 +2151,7 @@ Even if no test drive booked, you've:
 |-------|-----------------|
 | Browser not connected | Use verbal descriptions |
 | Zero results | Relax filters + show alternatives |
-| Too many results (>20) | Suggest narrowing criteria |
+| Too many results (>10) | Suggest narrowing criteria |
 | Too few results (<3) | Expand filters slightly |
 | Command fails | Try alternative approach or verbal |
 
