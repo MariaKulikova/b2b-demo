@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
@@ -169,35 +169,9 @@ const CarsPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            All Cars
-          </h1>
-          <p className="text-xl text-gray-600">
-            Browse our complete inventory of quality used cars
-          </p>
-        </div>
-
-        {/* Search and Filters */}
+        {/* Filters */}
         <div className="bg-white p-8 rounded-2xl shadow-md mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {/* Search */}
-            <div className="lg:col-span-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  id="car-search-input"
-                  placeholder="Search by make or model..."
-                  value={searchTerm}
-                  onChange={(e) => updateFilter('search', e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Фильтры в отдельной строке */}
+          {/* Фильтры */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
 
             {/* Make Filter */}
@@ -302,66 +276,68 @@ const CarsPage = () => {
             </Select>
           </div>
 
-          {/* Price, Mileage and Year Range Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-4">
-            {/* Price Range */}
-            <RangeSlider
-              min={priceRange.min}
-              max={priceRange.max}
-              step={1000}
-              minValue={minPrice}
-              maxValue={maxPrice}
-              onChange={(min, max) => {
-                const newParams = new URLSearchParams(searchParams);
-                newParams.set('minPrice', min);
-                newParams.set('maxPrice', max);
-                setSearchParams(newParams);
-              }}
-              formatValue={(value) => `€${value.toLocaleString()}`}
-              label="Price"
-            />
+          {/* Price, Mileage, Year Range Filters and Clear Button */}
+          <div className="flex items-end gap-6">
+            {/* Range sliders в grid - занимают основное пространство */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
+              {/* Price Range */}
+              <RangeSlider
+                min={priceRange.min}
+                max={priceRange.max}
+                step={1000}
+                minValue={minPrice}
+                maxValue={maxPrice}
+                onChange={(min, max) => {
+                  const newParams = new URLSearchParams(searchParams);
+                  newParams.set('minPrice', min);
+                  newParams.set('maxPrice', max);
+                  setSearchParams(newParams);
+                }}
+                formatValue={(value) => `€${value.toLocaleString()}`}
+                label="Price"
+              />
 
-            {/* Mileage Range */}
-            <RangeSlider
-              min={mileageRange.min}
-              max={mileageRange.max}
-              step={1000}
-              minValue={minMileage}
-              maxValue={maxMileage}
-              onChange={(min, max) => {
-                const newParams = new URLSearchParams(searchParams);
-                newParams.set('minMileage', min);
-                newParams.set('maxMileage', max);
-                setSearchParams(newParams);
-              }}
-              formatValue={(value) => `${value.toLocaleString()} km`}
-              label="Mileage"
-            />
+              {/* Mileage Range */}
+              <RangeSlider
+                min={mileageRange.min}
+                max={mileageRange.max}
+                step={1000}
+                minValue={minMileage}
+                maxValue={maxMileage}
+                onChange={(min, max) => {
+                  const newParams = new URLSearchParams(searchParams);
+                  newParams.set('minMileage', min);
+                  newParams.set('maxMileage', max);
+                  setSearchParams(newParams);
+                }}
+                formatValue={(value) => `${value.toLocaleString()} km`}
+                label="Mileage"
+              />
 
-            {/* Year Range */}
-            <RangeSlider
-              min={yearRange.min}
-              max={yearRange.max}
-              step={1}
-              minValue={minYear}
-              maxValue={maxYear}
-              onChange={(min, max) => {
-                const newParams = new URLSearchParams(searchParams);
-                newParams.set('minYear', min);
-                newParams.set('maxYear', max);
-                setSearchParams(newParams);
-              }}
-              formatValue={(value) => `${value}`}
-              label="Year"
-            />
-          </div>
+              {/* Year Range */}
+              <RangeSlider
+                min={yearRange.min}
+                max={yearRange.max}
+                step={1}
+                minValue={minYear}
+                maxValue={maxYear}
+                onChange={(min, max) => {
+                  const newParams = new URLSearchParams(searchParams);
+                  newParams.set('minYear', min);
+                  newParams.set('maxYear', max);
+                  setSearchParams(newParams);
+                }}
+                formatValue={(value) => `${value}`}
+                label="Year"
+              />
+            </div>
 
-          {/* Clear Filters Button */}
-          <div className="flex justify-end">
+            {/* Clear Filters Button - справа, выровнена по низу */}
             <Button
               id="car-clear-filters-btn"
               variant="outline"
               onClick={clearFilters}
+              className="whitespace-nowrap"
             >
               Clear Filters
             </Button>
