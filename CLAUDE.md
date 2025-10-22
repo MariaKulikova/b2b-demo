@@ -27,7 +27,8 @@ This is a React + Vite car dealer demo website for "Cool Cars Amsterdam" with th
 - `src/pages/` - Page components (HomePage, CarsPage, CarDetailPage, AboutPage, ContactPage)
 - `src/components/` - Shared components including CarCard, Header, Footer, ChatWidget, TestDriveModal
 - `src/components/ui/` - Reusable UI components (button, card, input, etc.)
-- `src/data/cars.js` - Car inventory data with utilities (getHotOffers, getCarById, getAllCars)
+- `src/services/api.js` - API service for fetching car inventory from backend
+- `src/context/CarsContext.jsx` - React Context for car data management (getHotOffers, getCarById, getAllCars)
 - `public/assets/cars/` - Car images directory
 
 ### Key Features
