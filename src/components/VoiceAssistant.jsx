@@ -13,6 +13,9 @@ import TranscriptModal from './TranscriptModal';
 const AGENT_ID = import.meta.env.VITE_ELEVENLABS_AGENT_ID || 'agent_3701k17y6168fzg8zag3efhsmz7y';
 const WS_URL = import.meta.env.VITE_BROWSER_CONTROL_WS_URL || 'wss://car-frontend-api.test.meteora.pro/browser-control';
 
+// localStorage ключ для хранения информации о проблемах с WebRTC
+const WEBRTC_FALLBACK_KEY = 'elevenlabs_webrtc_fallback';
+
 /**
  * Конвертация массива автомобилей в CSV формат
  * @param {Array} cars - Массив объектов автомобилей
@@ -121,23 +124,75 @@ const VoiceAssistant = () => {
         // Продолжаем работу даже если WebSocket не подключился
       }
 
-      // Запрашиваем доступ к микрофону
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-
       // Конвертируем автомобили в CSV формат
       const availableCars = convertCarsToCSV(cars);
       console.log('[VoiceAssistant] Available cars CSV:', availableCars.split('\n').length - 1, 'cars');
 
+      // Проверяем, были ли проблемы с WebRTC ранее
+      const shouldUseWebSocket = localStorage.getItem(WEBRTC_FALLBACK_KEY) === 'true';
+
       // Начинаем сессию с агентом, передаем session ID и доступные автомобили через dynamic variables
-      await conversation.startSession({
-        agentId: AGENT_ID,
-        // connectionType: 'webrtc',
-        dynamicVariables: {
-          sessionId: sessionId,
-          browserControlEnabled: true,
-          availableCars: availableCars
+      let connectionType = shouldUseWebSocket ? 'websocket' : 'webrtc';
+
+      if (shouldUseWebSocket) {
+        // Сразу используем WebSocket, т.к. WebRTC не работал ранее
+        console.log('[VoiceAssistant] Using WebSocket (WebRTC failed previously)');
+
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        await conversation.startSession({
+          agentId: AGENT_ID,
+          connectionType: 'websocket',
+          dynamicVariables: {
+            sessionId: sessionId,
+            browserControlEnabled: true,
+            availableCars: availableCars
+          }
+        });
+
+        console.log('[VoiceAssistant] WebSocket connection established');
+      } else {
+        // Пробуем WebRTC (лучшее качество с echo cancellation)
+        try {
+          console.log('[VoiceAssistant] Attempting WebRTC connection...');
+
+          await conversation.startSession({
+            agentId: AGENT_ID,
+            connectionType: 'webrtc',
+            dynamicVariables: {
+              sessionId: sessionId,
+              browserControlEnabled: true,
+              availableCars: availableCars
+            }
+          });
+
+          console.log('[VoiceAssistant] WebRTC connection established successfully');
+          // Очищаем флаг на случай если проблема была временной
+          localStorage.removeItem(WEBRTC_FALLBACK_KEY);
+
+        } catch (webrtcError) {
+          console.warn('[VoiceAssistant] WebRTC failed, falling back to WebSocket:', webrtcError.message);
+
+          // Сохраняем информацию, что WebRTC не работает
+          localStorage.setItem(WEBRTC_FALLBACK_KEY, 'true');
+
+          // Fallback на WebSocket с ручным запросом микрофона
+          await navigator.mediaDevices.getUserMedia({ audio: true });
+
+          await conversation.startSession({
+            agentId: AGENT_ID,
+            connectionType: 'websocket',
+            dynamicVariables: {
+              sessionId: sessionId,
+              browserControlEnabled: true,
+              availableCars: availableCars
+            }
+          });
+
+          connectionType = 'websocket';
+          console.log('[VoiceAssistant] WebSocket connection established as fallback');
         }
-      });
+      }
 
       console.log('[VoiceAssistant] Conversation started with session ID:', sessionId);
     } catch (error) {
