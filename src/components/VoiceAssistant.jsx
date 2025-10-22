@@ -130,6 +130,7 @@ const VoiceAssistant = () => {
       // Начинаем сессию с агентом, передаем session ID и доступные автомобили через dynamic variables
       await conversation.startSession({
         agentId: AGENT_ID,
+        connectionType: 'webrtc',
         dynamicVariables: {
           sessionId: sessionId,
           browserControlEnabled: true,
