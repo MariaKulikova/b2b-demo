@@ -52,7 +52,7 @@ const CarsPage = () => {
   const searchTerm = searchParams.get('search') || '';
   // Множественные фильтры хранятся как строки через запятую (например: "BMW,Audi")
   const makeFilter = searchParams.get('make') ? searchParams.get('make').split(',') : [];
-  const modelFilter = searchParams.get('model') || '';
+  const modelFilter = searchParams.get('model') ? searchParams.get('model').split(',') : [];
   const bodyTypeFilter = searchParams.get('bodyType') ? searchParams.get('bodyType').split(',') : [];
   const fuelTypeFilter = searchParams.get('fuelType') ? searchParams.get('fuelType').split(',') : [];
   const transmissionFilter = searchParams.get('transmission') ? searchParams.get('transmission').split(',') : [];
@@ -87,7 +87,7 @@ const CarsPage = () => {
         `${car.make} ${car.model}`.toLowerCase().includes(searchTerm.toLowerCase()));
 
       const matchesMake = exceptFilter === 'make' ? true : (makeFilter.length === 0 || makeFilter.includes(car.make));
-      const matchesModel = exceptFilter === 'model' ? true : (modelFilter === '' || car.model === modelFilter);
+      const matchesModel = exceptFilter === 'model' ? true : (modelFilter.length === 0 || modelFilter.includes(car.model));
       const matchesBodyType = exceptFilter === 'bodyType' ? true : (bodyTypeFilter.length === 0 || bodyTypeFilter.includes(car.bodyType));
       const matchesFuelType = exceptFilter === 'fuelType' ? true : (fuelTypeFilter.length === 0 || fuelTypeFilter.includes(car.fuelType));
       const matchesTransmission = exceptFilter === 'transmission' ? true : (transmissionFilter.length === 0 || transmissionFilter.includes(car.transmission));
@@ -106,7 +106,7 @@ const CarsPage = () => {
 
     // Множественные фильтры: если массив пустой - показываем все, иначе проверяем вхождение
     const matchesMake = makeFilter.length === 0 || makeFilter.includes(car.make);
-    const matchesModel = modelFilter === '' || car.model === modelFilter;
+    const matchesModel = modelFilter.length === 0 || modelFilter.includes(car.model);
     const matchesBodyType = bodyTypeFilter.length === 0 || bodyTypeFilter.includes(car.bodyType);
     const matchesFuelType = fuelTypeFilter.length === 0 || fuelTypeFilter.includes(car.fuelType);
     const matchesTransmission = transmissionFilter.length === 0 || transmissionFilter.includes(car.transmission);
@@ -210,17 +210,21 @@ const CarsPage = () => {
             />
 
             {/* Model Filter */}
-            <Select
+            <MultiSelect
               id="car-model-filter"
+              placeholder="Any Model"
+              options={availableModels}
               value={modelFilter}
-              onChange={(e) => updateFilter('model', e.target.value)}
-              disabled={availableModels.length === 0}
-            >
-              <option value="">Any Model</option>
-              {availableModels.map(model => (
-                <option key={model} value={model}>{model}</option>
-              ))}
-            </Select>
+              onChange={(selectedModels) => {
+                const newParams = new URLSearchParams(searchParams);
+                if (selectedModels.length > 0) {
+                  newParams.set('model', selectedModels.join(','));
+                } else {
+                  newParams.delete('model');
+                }
+                setSearchParams(newParams);
+              }}
+            />
 
             {/* Body Type Filter */}
             <MultiSelect
