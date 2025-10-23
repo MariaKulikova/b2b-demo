@@ -159,7 +159,7 @@ const VoiceAssistant = () => {
 
       if (shouldUseWebSocket) {
         // Сразу используем WebSocket, т.к. WebRTC не работал ранее
-        console.log('[VoiceAssistant] Using WebSocket (WebRTC failed previously)');
+        console.log('[VoiceAssistant] Using WebSocket (WebRTC failed previously), agent_id:', agentId);
 
         await navigator.mediaDevices.getUserMedia({ audio: true });
 
@@ -173,11 +173,11 @@ const VoiceAssistant = () => {
           }
         });
 
-        console.log('[VoiceAssistant] WebSocket connection established');
+        console.log('[VoiceAssistant] WebSocket connection established, agent_id:', agentId);
       } else {
         // Пробуем WebRTC (лучшее качество с echo cancellation)
         try {
-          console.log('[VoiceAssistant] Attempting WebRTC connection...');
+          console.log('[VoiceAssistant] Attempting WebRTC connection, agent_id:', agentId);
 
           await conversation.startSession({
             agentId: agentId,
@@ -189,7 +189,7 @@ const VoiceAssistant = () => {
             }
           });
 
-          console.log('[VoiceAssistant] WebRTC connection established successfully');
+          console.log('[VoiceAssistant] WebRTC connection established successfully, agent_id:', agentId);
           // Очищаем флаг на случай если проблема была временной
           localStorage.removeItem(WEBRTC_FALLBACK_KEY);
 
@@ -213,11 +213,11 @@ const VoiceAssistant = () => {
           });
 
           connectionType = 'websocket';
-          console.log('[VoiceAssistant] WebSocket connection established as fallback');
+          console.log('[VoiceAssistant] WebSocket connection established as fallback, agent_id:', agentId);
         }
       }
 
-      console.log('[VoiceAssistant] Conversation started with session ID:', sessionId);
+      console.log('[VoiceAssistant] Conversation started with session ID:', sessionId, 'agent_id:', agentId);
     } catch (error) {
       console.error('[VoiceAssistant] Failed to start conversation:', error);
 
