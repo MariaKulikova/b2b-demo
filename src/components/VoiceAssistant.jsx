@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useConversation } from '@elevenlabs/react';
+import { useSearchParams } from 'react-router-dom';
 import { Mic, MicOff, X, Phone, MessageSquare } from 'lucide-react';
 import { Button } from './ui/button';
 import { Orb } from './ui/orb';
@@ -9,9 +10,11 @@ import { useCars } from '../context/CarsContext';
 import { useVoiceAssistant } from '../context/VoiceAssistantContext';
 import TranscriptModal from './TranscriptModal';
 
-// Agent ID и WebSocket URL из переменных окружения
-const AGENT_ID = import.meta.env.VITE_ELEVENLABS_AGENT_ID || 'agent_3701k17y6168fzg8zag3efhsmz7y';
+// WebSocket URL из переменных окружения
 const WS_URL = import.meta.env.VITE_BROWSER_CONTROL_WS_URL || 'wss://car-frontend-api.test.meteora.pro/browser-control';
+
+// Дефолтный Agent ID (используется если не указан в env или URL)
+const DEFAULT_AGENT_ID = 'agent_3701k17y6168fzg8zag3efhsmz7y';
 
 // localStorage ключ для хранения информации о проблемах с WebRTC
 const WEBRTC_FALLBACK_KEY = 'elevenlabs_webrtc_fallback';
@@ -64,11 +67,31 @@ const VoiceAssistant = () => {
   const [isMuted, setIsMuted] = useState(false); // Microphone mute state
   const sessionIdRef = useRef(null);
 
+  // Получаем query параметры из URL
+  const [searchParams] = useSearchParams();
+
+  // Определяем agent_id с приоритетом: experimental_agent_id (URL) > VITE_ELEVENLABS_AGENT_ID (env) > DEFAULT_AGENT_ID
+  const experimentalAgentId = searchParams.get('experimental_agent_id');
+  const envAgentId = import.meta.env.VITE_ELEVENLABS_AGENT_ID;
+  const agentId = experimentalAgentId || envAgentId || DEFAULT_AGENT_ID;
+
   // Получаем данные об автомобилях из контекста
   const { cars } = useCars();
 
   // Получаем контекст VoiceAssistant для регистрации функции открытия
   const { setOpenHandler } = useVoiceAssistant();
+
+  // Логирование используемого agent_id для отладки
+  useEffect(() => {
+    const source = experimentalAgentId
+      ? 'URL parameter (experimental_agent_id)'
+      : envAgentId
+        ? 'Environment variable (VITE_ELEVENLABS_AGENT_ID)'
+        : 'Default value';
+
+    console.log('[VoiceAssistant] Agent ID source:', source);
+    console.log('[VoiceAssistant] Using agent ID:', agentId);
+  }, [agentId, experimentalAgentId, envAgentId]);
 
   // Инициализация useConversation хука
   const conversation = useConversation({
@@ -141,7 +164,7 @@ const VoiceAssistant = () => {
         await navigator.mediaDevices.getUserMedia({ audio: true });
 
         await conversation.startSession({
-          agentId: AGENT_ID,
+          agentId: agentId,
           connectionType: 'websocket',
           dynamicVariables: {
             sessionId: sessionId,
@@ -157,7 +180,7 @@ const VoiceAssistant = () => {
           console.log('[VoiceAssistant] Attempting WebRTC connection...');
 
           await conversation.startSession({
-            agentId: AGENT_ID,
+            agentId: agentId,
             connectionType: 'webrtc',
             dynamicVariables: {
               sessionId: sessionId,
@@ -180,7 +203,7 @@ const VoiceAssistant = () => {
           await navigator.mediaDevices.getUserMedia({ audio: true });
 
           await conversation.startSession({
-            agentId: AGENT_ID,
+            agentId: agentId,
             connectionType: 'websocket',
             dynamicVariables: {
               sessionId: sessionId,
@@ -205,7 +228,7 @@ const VoiceAssistant = () => {
 
       alert('Unable to access microphone. Please grant microphone permissions and try again.');
     }
-  }, [conversation]);
+  }, [conversation, agentId, cars]);
 
   // Функция для завершения разговора
   const endConversation = useCallback(async () => {
