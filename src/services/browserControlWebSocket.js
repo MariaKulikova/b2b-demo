@@ -798,7 +798,7 @@ if (typeof window !== 'undefined') {
   window.browserControl = {
     /**
      * Выполнить параметризованную команду по ID
-     * @example window.browserControl.execute('view_cars', { carIds: [1, 2] })
+     * @example window.browserControl.execute('view_cars', { offerId: '534162-1' })
      * @example window.browserControl.execute('set_filter', { filterType: 'make', values: ['BMW'] })
      * @example window.browserControl.execute('go_home')
      */
@@ -861,7 +861,7 @@ if (typeof window !== 'undefined') {
       console.log('  window.browserControl.search("filter")');
       console.log('  window.browserControl.execute("go_home")');
       console.log('  window.browserControl.execute("set_filter", { filterType: "make", values: ["BMW"] })');
-      console.log('  window.browserControl.execute("view_cars", { carIds: [1, 2, 3] })');
+      console.log('  window.browserControl.execute("view_cars", { offerId: "534162-1" })');
       console.log('  window.browserControl.execute("set_filters", { filters: { make: ["BMW"], price: { max: 50000 } } })');
       console.log('  window.browserControl.debugVoiceSession()');
       console.log('');
