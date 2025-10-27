@@ -27,24 +27,40 @@ export class CommandExecutor {
 
   /**
    * Оптимизированное чтение результатов фильтрации
-   * Проверяет свежесть данных и читает либо сразу, либо после RAF
+   * Ждёт появления нового timestamp у window.currentFilteredCars (после применения фильтров)
+   * или возвращает последнее состояние по тайм-ауту.
    * @returns {Promise<Object>} Promise с результатами
    */
-  async getFilteredResultsOptimized() {
+  async getFilteredResultsOptimized({ timeoutMs = 500 } = {}) {
+    const initialTimestamp = window.currentFilteredCars?.timestamp ?? 0;
+    const startTime = Date.now();
+
     return new Promise(resolve => {
-      const tryGetResults = () => {
-        const results = this.getFilteredResults();
-        resolve(results);
+      const waitForFreshResults = () => {
+        const currentData = window.currentFilteredCars;
+        const currentTimestamp = currentData?.timestamp ?? 0;
+        // Считаем данные свежими, когда timestamp обновился после запуска ожидания
+        const isFresh =
+          currentTimestamp &&
+          (currentTimestamp > initialTimestamp || currentTimestamp >= startTime);
+
+        if (isFresh) {
+          resolve(this.getFilteredResults());
+          return;
+        }
+
+        if (Date.now() - startTime >= timeoutMs) {
+          console.warn(
+            '[CommandExecutor] Timed out waiting for fresh filtered results, returning last known data'
+          );
+          resolve(this.getFilteredResults());
+          return;
+        }
+
+        requestAnimationFrame(waitForFreshResults);
       };
 
-      // Проверяем свежесть данных (обновлены за последние 100ms)
-      if (window.currentFilteredCars?.timestamp > Date.now() - 100) {
-        // Данные свежие - читаем сразу (0ms задержка)
-        tryGetResults();
-      } else {
-        // Данные устарели - ждем следующий фрейм (~16ms задержка)
-        requestAnimationFrame(tryGetResults);
-      }
+      waitForFreshResults();
     });
   }
 
