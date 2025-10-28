@@ -43,7 +43,18 @@ This is a React + Vite car dealer demo website for "Cool Cars Amsterdam" with th
 - `@/` maps to `./src/` for clean imports
 
 ### Data Model
-Cars have properties: id, make, model, year, price, mileage, images[], description, features[], fuelType, transmission, color, isHotOffer
+**Car inventory is loaded dynamically from backend API** (`fetchCarInventory()` in `services/api.js`)
+
+Car properties:
+- `id` (string) - Unique offer ID (e.g., "317207336-1")
+- `make`, `model`, `year` - Basic car information
+- `price`, `mileage` - Numeric values (0 means "Contact for price" or "N/A")
+- `images[]` - Array of image URLs (empty array shows placeholder)
+- `description`, `features[]` - Text details
+- `fuelType`, `transmission`, `color`, `bodyType` - Categorical fields
+- `isHotOffer` (boolean) - Highlights special offers
+
+Data access: Use `useCars()` hook which provides `getAllCars()`, `getCarById(id)`, `getHotOffers()`
 
 ### Contact Information
 - Phone: +447418613962
@@ -117,9 +128,10 @@ This application integrates with ElevenLabs Voice AI and MCP (Model Context Prot
 
 ### Available Commands
 Commands are dynamically generated based on the current route:
-- **Navigation**: `go_home`, `go_cars`, `go_about`, `go_contact`, `go_back_cars`
+- **Navigation**: `go_home`, `go_cars`, `go_about`, `go_contact`, `go_back_cars`, `go_book_test_drive`
 - **Filters**: `set_filter` (single), `set_filters` (multiple), `clear_filters`
 - **Actions**: `view_cars`, `scroll_top`, `scroll_bottom`
+- **Notifications**: `notify_success_booking` - показать уведомление об успешном бронировании тест-драйва
 
 ### Filter System
 - **Categorical filters** (make, bodyType, fuelType, transmission): Support multi-select via comma-separated URL params (e.g., `?make=Audi,Kia`)
@@ -149,6 +161,16 @@ window.browserControl.execute('set_filters', {
 // Clear filters
 window.browserControl.execute('clear_filters', {
   filterTypes: ['all']
+});
+
+// Show success booking notification
+window.browserControl.execute('notify_success_booking', {
+  date: '2025-11-15',
+  time: '14:30',
+  name: 'John Smith',
+  phone: '+31612345678',
+  bookingId: 'BOOK-2025-001',
+  carInfo: '2020 BMW X5' // optional
 });
 
 // View available commands

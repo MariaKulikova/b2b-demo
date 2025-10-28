@@ -130,6 +130,38 @@ function generateNavigationCommands(currentRoute) {
     });
   }
 
+  // Команда для уведомления об успешном бронировании (доступна всегда)
+  commands.push({
+    id: 'notify_success_booking',
+    params: {
+      date: {
+        type: 'string',
+        description: 'Booking date in ISO format (e.g., "2025-11-15")'
+      },
+      time: {
+        type: 'string',
+        description: 'Booking time (e.g., "14:30")'
+      },
+      name: {
+        type: 'string',
+        description: 'Customer name'
+      },
+      phone: {
+        type: 'string',
+        description: 'Customer phone number'
+      },
+      bookingId: {
+        type: 'string',
+        description: 'Unique booking ID'
+      },
+      carInfo: {
+        type: 'string',
+        optional: true,
+        description: 'Optional car information (e.g., "2020 BMW X5")'
+      }
+    }
+  });
+
   return commands;
 }
 

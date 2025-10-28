@@ -123,6 +123,9 @@ export class CommandExecutor {
           window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
           return { success: true, action: 'scrolled to bottom' };
 
+        case 'notify_success_booking':
+          return this.notifySuccessBooking(params);
+
         default:
           console.warn(`[CommandExecutor] Unknown command: ${commandId}`);
           return { success: false, error: `Unknown command: ${commandId}` };
@@ -675,6 +678,53 @@ export class CommandExecutor {
       bodyType: car.bodyType || 'N/A',
       fuelType: car.fuelType || 'N/A',
       transmission: car.transmission || 'N/A'
+    };
+  }
+
+  /**
+   * Показать уведомление об успешном бронировании
+   * Параметры: { date, time, name, phone, bookingId, carInfo? }
+   */
+  notifySuccessBooking({ date, time, name, phone, bookingId, carInfo }) {
+    console.log('[CommandExecutor] Showing success booking notification:', {
+      date,
+      time,
+      name,
+      phone,
+      bookingId,
+      carInfo
+    });
+
+    // Валидация обязательных параметров
+    if (!date || !time || !name || !phone || !bookingId) {
+      return {
+        success: false,
+        error: 'Missing required parameters: date, time, name, phone, bookingId are required'
+      };
+    }
+
+    // Проверяем наличие глобальной функции showNotification
+    if (typeof window.showSuccessBookingNotification !== 'function') {
+      console.error('[CommandExecutor] window.showSuccessBookingNotification is not defined');
+      return {
+        success: false,
+        error: 'Notification system not initialized'
+      };
+    }
+
+    // Вызываем глобальную функцию для показа уведомления
+    window.showSuccessBookingNotification({
+      date,
+      time,
+      name,
+      phone,
+      bookingId,
+      carInfo
+    });
+
+    return {
+      success: true,
+      action: `shown booking notification for ${name} on ${date} at ${time}`
     };
   }
 }

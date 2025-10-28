@@ -271,17 +271,60 @@ Call mcp__browser-control__browser_get_actions_map
 
 **Filter Results Format**:
 
-When you apply filters or navigate to cars page, you receive:
+When you apply filters using `set_filters` or `set_filter`, you receive comprehensive results:
 ```javascript
 {
-  total: 25,              // Total filtered cars
-  showing: 10,            // How many shown in cars array (max 10)
-  cars: [...],            // First 10 cars with full details
-  visibleOfferIds: [...], // ALL offer IDs from filtered results (use for view_cars)
-  priceRange: {...},
-  mileageRange: {...}
+  "success": true,
+  "message": "Executed command \"set_filters\"...",
+  "commandId": "set_filters",
+  "params": {
+    "filters": {
+      "make": ["Hyundai"],
+      "model": ["i30"]
+    }
+  },
+  "results": {
+    "total": 3,              // Total filtered cars matching criteria
+    "allCarsTotal": 424,     // Total cars in entire inventory
+    "showing": 3,            // How many shown in cars array (first 10)
+    "cars": [                // First 10 cars with FULL details
+      {
+        "id": "317207336-1",           // ← String offerId for view_cars
+        "title": "2024 Hyundai i30",
+        "price": 30990,
+        "mileage": 49000,
+        "year": 2024,
+        "make": "Hyundai",
+        "model": "i30",
+        "bodyType": "Sedan",
+        "fuelType": "Petrol",
+        "transmission": "Automatic"
+      },
+      // ... up to 10 cars
+    ],
+    "visibleOfferIds": [     // ALL offer IDs from filtered results
+      "317207336-1",         // ← Use these for view_cars command
+      "520480215-1",
+      "222422119-1"
+    ],
+    "priceRange": {
+      "min": 13990,
+      "max": 30990
+    },
+    "mileageRange": {
+      "min": 0,
+      "max": 100850
+    }
+  },
+  "action": "applied filters: make: Hyundai; model: i30"
 }
 ```
+
+**Key points:**
+- `results.cars` contains detailed info for first 10 cars (ready for narration)
+- `results.visibleOfferIds` contains ALL matching car IDs (use for `view_cars`)
+- `results.total` tells you how many cars match the filters
+- Car IDs are **strings** like "317207336-1" (not numbers)
 
 ### Working with Offer IDs
 
