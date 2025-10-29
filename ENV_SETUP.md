@@ -107,6 +107,18 @@ WebSocket URL для управления браузером через голо
 ### VITE_ELEVENLABS_AGENT_ID
 ID агента ElevenLabs для голосового помощника
 
+### VITE_VOICE_ASSISTANT_PROVIDER
+Тип голосового провайдера (`elevenlabs` или `livekit`). Управляет тем, какой стек будет использоваться фронтендом.
+
+### VITE_LIVEKIT_CONN_DETAILS_ENDPOINT
+REST endpoint, возвращающий `serverUrl` и токен доступа к комнате LiveKit. Обычно реализуется небольшим сервером (см. пример в `agent-starter-embed`), чтобы скрыть `LIVEKIT_API_SECRET`.
+
+### VITE_LIVEKIT_AGENT_NAME
+Необязательное имя агента LiveKit для явного диспатча. Оставьте пустым, чтобы использовать стандартную конфигурацию проекта.
+
+### VITE_LIVEKIT_SANDBOX_ID
+Идентификатор Sandbox проекта в LiveKit Cloud. Используется только при работе через LiveKit Sandbox.
+
 ## GitHub Actions и GitHub Secrets
 
 Для автоматического деплоя на GitHub Pages используются GitHub Secrets вместо коммита .env файлов.
@@ -122,6 +134,10 @@ ID агента ElevenLabs для голосового помощника
 | `VITE_INVENTORY_ID` | ID источника инвентаря | `autopolis_shiftgears_demo` |
 | `VITE_BROWSER_CONTROL_WS_URL` | WebSocket URL для управления браузером | `wss://car-frontend-api.test.meteora.pro/browser-control` |
 | `VITE_ELEVENLABS_AGENT_ID` | ID агента ElevenLabs | `agent_4301k7vnxwhne8r93z3tqjkyh647` |
+| `VITE_VOICE_ASSISTANT_PROVIDER` | Провайдер голосового ассистента | `elevenlabs` или `livekit` |
+| `VITE_LIVEKIT_CONN_DETAILS_ENDPOINT` | Endpoint для получения LiveKit токена | Например: `https://cloud-api.livekit.io/api/sandbox/connection-details` |
+| `VITE_LIVEKIT_AGENT_NAME` | (Опционально) Имя LiveKit агента | Например: `` |
+| `VITE_LIVEKIT_SANDBOX_ID` | (Опционально) LiveKit Sandbox ID | Например: `shift-gears-demo-17gfi0` |
 
 ### Как это работает
 
