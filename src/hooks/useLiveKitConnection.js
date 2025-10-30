@@ -43,22 +43,24 @@ const useLiveKitConnection = () => {
   const sandboxId = useMemo(() => getSandboxId(), []);
   const agentName = useMemo(() => getAgentName(), []);
 
-  const fetchConnectionDetails = useCallback(async () => {
+  const fetchConnectionDetails = useCallback(async (metadata = {}) => {
     setIsLoading(true);
     setError(null);
 
     try {
       const url = new URL(endpoint, window.location.origin);
-      const payload = agentName
-        ? {
-            room_config: {
-              agents: [{ agent_name: agentName }],
-            },
-          }
-        : {};
 
-      const body =
-        Object.keys(payload).length > 0 ? JSON.stringify(payload) : '{}';
+      // Build payload with room config and metadata
+      const payload = {
+        ...(agentName && {
+          room_config: {
+            agents: [{ agent_name: agentName }],
+          },
+        }),
+        ...(Object.keys(metadata).length > 0 && { metadata }),
+      };
+
+      const body = Object.keys(payload).length > 0 ? JSON.stringify(payload) : '{}';
 
       const response = await fetch(url.toString(), {
         method: 'POST',
@@ -84,13 +86,13 @@ const useLiveKitConnection = () => {
     }
   }, [endpoint, sandboxId, agentName]);
 
-  const ensureConnectionDetails = useCallback(async () => {
+  const ensureConnectionDetails = useCallback(async (metadata = {}) => {
     if (!connectionDetails) {
-      return fetchConnectionDetails();
+      return fetchConnectionDetails(metadata);
     }
 
     if (isTokenExpired(connectionDetails.participantToken)) {
-      return fetchConnectionDetails();
+      return fetchConnectionDetails(metadata);
     }
 
     return connectionDetails;

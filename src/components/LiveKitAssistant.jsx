@@ -17,6 +17,9 @@ import { useVoiceAssistant as useVoiceAssistantContext } from '../context/VoiceA
 import useLiveKitConnection from '../hooks/useLiveKitConnection';
 import useLiveKitTranscript from '../hooks/useLiveKitTranscript';
 import { getOrCreateSessionId, refreshSession } from '../services/sessionManager';
+import { browserControlWS } from '../services/browserControlWebSocket';
+
+const WS_URL = import.meta.env.VITE_BROWSER_CONTROL_WS_URL || 'wss://car-frontend-api.test.meteora.pro/browser-control';
 
 const LiveKitAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -54,7 +57,20 @@ const LiveKitAssistant = () => {
       const id = getOrCreateSessionId();
       setSessionId(id);
       refreshSession();
-      await ensureConnectionDetails();
+
+      // Connect to browser control WebSocket
+      try {
+        await browserControlWS.connect(WS_URL, id);
+        console.log('[LiveKitAssistant] Connected to browser control WebSocket');
+      } catch (wsError) {
+        console.error('[LiveKitAssistant] Failed to connect to browser control WebSocket:', wsError);
+      }
+
+      // Get LiveKit connection details with metadata
+      await ensureConnectionDetails({
+        sessionId: id,
+        browserControlEnabled: true,
+      });
       setShouldConnect(true);
     } catch (error) {
       console.error('[LiveKitAssistant] Unable to load LiveKit connection details:', error);
@@ -74,6 +90,12 @@ const LiveKitAssistant = () => {
       micPending: false,
     });
     setMessages([]);
+
+    // Disconnect from browser control WebSocket
+    if (browserControlWS.isConnected()) {
+      browserControlWS.disconnect();
+      console.log('[LiveKitAssistant] Disconnected from browser control WebSocket');
+    }
   }, []);
 
   const handleClose = useCallback(() => {
