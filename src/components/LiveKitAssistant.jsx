@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Mic, MicOff, X, Phone, MessageSquare } from 'lucide-react';
 import { Track } from 'livekit-client';
 import {
@@ -55,6 +55,7 @@ const LiveKitAssistant = () => {
 
     try {
       const id = getOrCreateSessionId();
+      console.log('[LiveKitAssistant] Session ID generated for LiveKit:', id);
       setSessionId(id);
       refreshSession();
 
@@ -173,9 +174,14 @@ const LiveKitAssistant = () => {
   const handleRoomConnected = useCallback(async (room) => {
     try {
       await room.localParticipant.setMicrophoneEnabled(true);
+      console.log('[LiveKitAssistant] Microphone enabled for LiveKit room');
       if (sessionId) {
-        await room.localParticipant.setMetadata(JSON.stringify({ sessionId }));
+        await Promise.all([
+          room.localParticipant.setMetadata(JSON.stringify({ sessionId })),
+          room.localParticipant.setAttributes({ sessionId }),
+        ]);
         refreshSession();
+        console.log('[LiveKitAssistant] Applied sessionId metadata/attributes to LiveKit participant:', sessionId);
       }
     } catch (error) {
       console.error('[LiveKitAssistant] Failed to enable microphone:', error);
@@ -185,6 +191,7 @@ const LiveKitAssistant = () => {
   const handleRoomDisconnected = useCallback(() => {
     resetState();
     setIsOpen(false);
+    console.log('[LiveKitAssistant] LiveKit room disconnected, refreshing connection details');
 
     refreshConnectionDetails().catch((error) => {
       console.warn('[LiveKitAssistant] Failed to refresh LiveKit connection details:', error);
@@ -404,6 +411,10 @@ const LiveKitSession = ({ onSessionState, onMessagesChange, onControlsReady, onE
     toggle: toggleMicrophone,
   } = useTrackToggle({ source: Track.Source.Microphone });
   const messages = useLiveKitTranscript();
+  const previousSessionStateRef = useRef(null);
+  const previousMessagesRef = useRef([]);
+  const lastAppliedMetadataRef = useRef(null);
+  const lastAppliedAttributesRef = useRef(null);
 
   useEffect(() => {
     onControlsReady({
@@ -430,12 +441,25 @@ const LiveKitSession = ({ onSessionState, onMessagesChange, onControlsReady, onE
       status = 'connecting';
     }
 
-    onSessionState({
+    const nextState = {
       status,
       isSpeaking: agentState === 'speaking',
       isMuted: !micEnabled,
       micPending: micPending,
-    });
+    };
+
+    const prev = previousSessionStateRef.current;
+    const shouldUpdate =
+      !prev ||
+      prev.status !== nextState.status ||
+      prev.isSpeaking !== nextState.isSpeaking ||
+      prev.isMuted !== nextState.isMuted ||
+      prev.micPending !== nextState.micPending;
+
+    if (shouldUpdate) {
+      previousSessionStateRef.current = nextState;
+      onSessionState(nextState);
+    }
   }, [
     room.state,
     agentState,
@@ -445,7 +469,24 @@ const LiveKitSession = ({ onSessionState, onMessagesChange, onControlsReady, onE
   ]);
 
   useEffect(() => {
-    onMessagesChange(messages);
+    const prev = previousMessagesRef.current;
+    const sameLength = prev.length === messages.length;
+    const allEqual =
+      sameLength &&
+      prev.every((msg, index) => {
+        const next = messages[index];
+        return (
+          msg.id === next.id &&
+          msg.role === next.role &&
+          msg.text === next.text &&
+          msg.timestamp?.getTime?.() === next.timestamp?.getTime?.()
+        );
+      });
+
+    if (!allEqual) {
+      previousMessagesRef.current = messages;
+      onMessagesChange(messages);
+    }
   }, [messages, onMessagesChange]);
 
   useEffect(() => {
@@ -453,9 +494,22 @@ const LiveKitSession = ({ onSessionState, onMessagesChange, onControlsReady, onE
       return;
     }
 
+    const attrSessionId = lastAppliedAttributesRef.current;
+    const metaSessionId = lastAppliedMetadataRef.current;
+
+    if (attrSessionId === sessionId && metaSessionId === sessionId) {
+      return;
+    }
+
     const applyMetadata = async () => {
       try {
-        await room.localParticipant.setMetadata(JSON.stringify({ sessionId }));
+        await Promise.all([
+          room.localParticipant.setMetadata(JSON.stringify({ sessionId })),
+          room.localParticipant.setAttributes({ sessionId }),
+        ]);
+        lastAppliedMetadataRef.current = sessionId;
+        lastAppliedAttributesRef.current = sessionId;
+        console.log('[LiveKitAssistant] Resent sessionId metadata/attributes after reconnect:', sessionId);
       } catch (error) {
         console.error('[LiveKitAssistant] Failed to set LiveKit metadata:', error);
       }
