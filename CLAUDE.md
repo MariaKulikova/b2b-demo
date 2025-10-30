@@ -223,5 +223,114 @@ All browser control operations are logged with prefixes:
 - `[CommandExecutor]` - Command execution and filter operations
 - `[CommandGenerator]` - Available commands generation
 - `[VoiceAssistant]` - Voice AI session lifecycle
+- `[ElevenLabsAssistant]` - ElevenLabs provider logs
+- `[LiveKitAssistant]` - LiveKit provider logs
+- `[useLiveKitConnection]` - LiveKit connection management
 
 Filter console by these prefixes to debug specific subsystems.
+
+## Voice Assistant Providers
+
+The application supports two voice assistant providers: **ElevenLabs** and **LiveKit**. Provider selection is configured via environment variable.
+
+### Architecture
+
+**Provider Selection**:
+- `src/components/VoiceAssistant.jsx` - Wrapper component that selects provider based on `VITE_VOICE_ASSISTANT_PROVIDER` env variable
+- `src/components/ElevenLabsAssistant.jsx` - ElevenLabs implementation (default)
+- `src/components/LiveKitAssistant.jsx` - LiveKit implementation
+
+**LiveKit Components**:
+- `src/hooks/useLiveKitConnection.js` - Manages LiveKit Cloud API connection and token lifecycle
+- `src/hooks/useLiveKitTranscript.js` - Handles transcript messages via LiveKit DataChannel
+- `src/utils/livekit.js` - LiveKit utility functions
+
+### Configuration
+
+**Environment Variables** (add to `.env.local` or `.env.development`):
+
+```bash
+# Voice assistant provider selection
+VITE_VOICE_ASSISTANT_PROVIDER=elevenlabs  # or 'livekit'
+
+# LiveKit configuration (when provider=livekit)
+VITE_LIVEKIT_CONN_DETAILS_ENDPOINT=https://cloud-api.livekit.io/api/sandbox/connection-details
+VITE_LIVEKIT_SANDBOX_ID=shift-gears-demo-17gfi0
+VITE_LIVEKIT_AGENT_NAME=  # Optional: specific agent name
+```
+
+### LiveKit Cloud Sandbox Integration
+
+The LiveKit implementation uses **LiveKit Cloud Sandbox API** for automatic token generation:
+
+**How it works**:
+1. Frontend calls `useLiveKitConnection.ensureConnectionDetails()`
+2. Hook makes POST request to LiveKit Cloud API with `X-Sandbox-Id` header
+3. API returns connection details including `participantToken` and room information
+4. Token is automatically validated and refreshed when expired (using `jose` library)
+5. Frontend connects to LiveKit room with received token
+6. Browser control WebSocket is established with sessionId
+
+**Token Lifecycle**:
+- Tokens auto-expire after a set time
+- `isTokenExpired()` checks expiration 1 minute before actual expiry
+- `ensureConnectionDetails()` automatically refreshes expired tokens
+
+### Switching Providers
+
+To switch between providers, change environment variable:
+
+```bash
+# Use ElevenLabs (default)
+VITE_VOICE_ASSISTANT_PROVIDER=elevenlabs
+
+# Use LiveKit
+VITE_VOICE_ASSISTANT_PROVIDER=livekit
+```
+
+No code changes required - restart dev server for changes to take effect.
+
+### Browser Control Integration
+
+Both providers use the **same browser control WebSocket** (`browserControlWS`):
+- `sessionId` is generated via `getOrCreateSessionId()` (24-hour TTL)
+- Car inventory is formatted as CSV via `convertCarsToCSV(cars)`
+- Commands are executed via `window.browserControl.execute()`
+
+**LiveKit-specific**:
+- `sessionId` is passed in metadata when fetching connection details
+- Agent receives sessionId and registers with browser control backend
+- Transcript messages arrive via DataChannel (not WebSocket)
+
+### Key Differences
+
+| Feature | ElevenLabs | LiveKit |
+|---------|-----------|---------|
+| Token generation | ElevenLabs API | LiveKit Cloud Sandbox API |
+| Connection | WebSocket + WebRTC fallback | WebRTC (LiveKit protocol) |
+| Transcript | WebSocket messages | DataChannel messages |
+| Backend requirement | None (uses ElevenLabs cloud) | LiveKit agent deployment required |
+| Dependencies | `@elevenlabs/react` | `@livekit/components-react`, `livekit-client`, `jose` |
+
+### Debugging LiveKit
+
+**Check connection details**:
+```javascript
+// In browser console, after opening assistant
+// Check if connection details were fetched
+console.log('[useLiveKitConnection]') // Look for fetch logs
+```
+
+**Common Issues**:
+
+**Problem**: LiveKit connection fails with 401/403
+**Solution**: Verify `VITE_LIVEKIT_SANDBOX_ID` is correct and matches your LiveKit Cloud project
+
+**Problem**: Agent doesn't join room
+**Solution**: Ensure LiveKit agent is deployed and running in your LiveKit Cloud Sandbox
+
+**Problem**: Browser control commands not working
+**Solution**:
+1. Check browser control WebSocket connection: `browserControlWS.isConnected()`
+2. Verify sessionId was passed in metadata
+3. Check agent logs for browser control registration
