@@ -3,6 +3,7 @@ import LiveKitAssistant from './LiveKitAssistant';
 
 const resolveProvider = () => {
   const provider = (import.meta.env.VITE_VOICE_ASSISTANT_PROVIDER || 'livekit').trim().toLowerCase();
+  console.warn(`[VoiceAssistant] got provider: "${provider}"`);
   if (provider === 'livekit') {
     return 'livekit';
   }
