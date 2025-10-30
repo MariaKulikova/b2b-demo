@@ -16,6 +16,7 @@ import TranscriptModal from './TranscriptModal';
 import { useVoiceAssistant as useVoiceAssistantContext } from '../context/VoiceAssistantContext';
 import useLiveKitConnection from '../hooks/useLiveKitConnection';
 import useLiveKitTranscript from '../hooks/useLiveKitTranscript';
+import { getOrCreateSessionId, refreshSession } from '../services/sessionManager';
 
 const LiveKitAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,6 +35,7 @@ const LiveKitAssistant = () => {
   });
   const [connectionError, setConnectionError] = useState(null);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
 
   const { setOpenHandler } = useVoiceAssistantContext();
   const {
@@ -49,6 +51,9 @@ const LiveKitAssistant = () => {
     setIsInitializing(true);
 
     try {
+      const id = getOrCreateSessionId();
+      setSessionId(id);
+      refreshSession();
       await ensureConnectionDetails();
       setShouldConnect(true);
     } catch (error) {
@@ -146,10 +151,14 @@ const LiveKitAssistant = () => {
   const handleRoomConnected = useCallback(async (room) => {
     try {
       await room.localParticipant.setMicrophoneEnabled(true);
+      if (sessionId) {
+        await room.localParticipant.setMetadata(JSON.stringify({ sessionId }));
+        refreshSession();
+      }
     } catch (error) {
       console.error('[LiveKitAssistant] Failed to enable microphone:', error);
     }
-  }, []);
+  }, [sessionId]);
 
   const handleRoomDisconnected = useCallback(() => {
     resetState();
@@ -349,6 +358,7 @@ const LiveKitAssistant = () => {
               onMessagesChange={setMessages}
               onControlsReady={setControls}
               onEnd={handleClose}
+              sessionId={sessionId}
             />
           </LiveKitRoom>
         )}
@@ -363,7 +373,7 @@ const LiveKitAssistant = () => {
   );
 };
 
-const LiveKitSession = ({ onSessionState, onMessagesChange, onControlsReady, onEnd }) => {
+const LiveKitSession = ({ onSessionState, onMessagesChange, onControlsReady, onEnd, sessionId }) => {
   const room = useRoomContext();
   const { state: agentState } = useLiveKitVoiceAssistant();
   const {
@@ -415,6 +425,22 @@ const LiveKitSession = ({ onSessionState, onMessagesChange, onControlsReady, onE
   useEffect(() => {
     onMessagesChange(messages);
   }, [messages, onMessagesChange]);
+
+  useEffect(() => {
+    if (!sessionId || room.state !== 'connected') {
+      return;
+    }
+
+    const applyMetadata = async () => {
+      try {
+        await room.localParticipant.setMetadata(JSON.stringify({ sessionId }));
+      } catch (error) {
+        console.error('[LiveKitAssistant] Failed to set LiveKit metadata:', error);
+      }
+    };
+
+    applyMetadata();
+  }, [room, room.state, sessionId]);
 
   return null;
 };
