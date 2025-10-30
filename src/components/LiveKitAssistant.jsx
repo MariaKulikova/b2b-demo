@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Mic, MicOff, X, Phone, MessageSquare } from 'lucide-react';
 import { Track } from 'livekit-client';
 import {
@@ -382,6 +382,9 @@ const LiveKitSession = ({ onSessionState, onMessagesChange, onControlsReady, onE
     toggle: toggleMicrophone,
   } = useTrackToggle({ source: Track.Source.Microphone });
   const messages = useLiveKitTranscript();
+  const previousSessionStateRef = useRef(null);
+  const previousMessagesRef = useRef([]);
+  const lastAppliedMetadataRef = useRef(null);
 
   useEffect(() => {
     onControlsReady({
@@ -408,12 +411,25 @@ const LiveKitSession = ({ onSessionState, onMessagesChange, onControlsReady, onE
       status = 'connecting';
     }
 
-    onSessionState({
+    const nextState = {
       status,
       isSpeaking: agentState === 'speaking',
       isMuted: !micEnabled,
       micPending: micPending,
-    });
+    };
+
+    const prev = previousSessionStateRef.current;
+    const shouldUpdate =
+      !prev ||
+      prev.status !== nextState.status ||
+      prev.isSpeaking !== nextState.isSpeaking ||
+      prev.isMuted !== nextState.isMuted ||
+      prev.micPending !== nextState.micPending;
+
+    if (shouldUpdate) {
+      previousSessionStateRef.current = nextState;
+      onSessionState(nextState);
+    }
   }, [
     room.state,
     agentState,
@@ -423,7 +439,24 @@ const LiveKitSession = ({ onSessionState, onMessagesChange, onControlsReady, onE
   ]);
 
   useEffect(() => {
-    onMessagesChange(messages);
+    const prev = previousMessagesRef.current;
+    const sameLength = prev.length === messages.length;
+    const allEqual =
+      sameLength &&
+      prev.every((msg, index) => {
+        const next = messages[index];
+        return (
+          msg.id === next.id &&
+          msg.role === next.role &&
+          msg.text === next.text &&
+          msg.timestamp?.getTime?.() === next.timestamp?.getTime?.()
+        );
+      });
+
+    if (!allEqual) {
+      previousMessagesRef.current = messages;
+      onMessagesChange(messages);
+    }
   }, [messages, onMessagesChange]);
 
   useEffect(() => {
@@ -431,9 +464,14 @@ const LiveKitSession = ({ onSessionState, onMessagesChange, onControlsReady, onE
       return;
     }
 
+    if (lastAppliedMetadataRef.current === sessionId) {
+      return;
+    }
+
     const applyMetadata = async () => {
       try {
         await room.localParticipant.setMetadata(JSON.stringify({ sessionId }));
+        lastAppliedMetadataRef.current = sessionId;
       } catch (error) {
         console.error('[LiveKitAssistant] Failed to set LiveKit metadata:', error);
       }
